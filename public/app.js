@@ -37,6 +37,9 @@ const I18N = {
     copied: 'Result copied to clipboard!',
     no_cam: 'No camera — use Upload or type a topic.',
     cam_fail: (e) => `Camera unavailable (${e}). Use Upload or type a topic below.`,
+    install: 'Install',
+    installed: 'AIQUIZ installed! Open it from your home screen.',
+    ios_install: 'To install: tap Share, then “Add to Home Screen”.',
   },
   telugu: {
     hero_title: 'ఏ పేజీనైనా క్విజ్‌గా మార్చండి',
@@ -71,6 +74,9 @@ const I18N = {
     copied: 'ఫలితం కాపీ అయింది!',
     no_cam: 'కెమెరా లేదు — అప్‌లోడ్ వాడండి లేదా టాపిక్ టైప్ చేయండి.',
     cam_fail: (e) => `కెమెరా అందుబాటులో లేదు (${e}). అప్‌లోడ్ వాడండి లేదా టాపిక్ టైప్ చేయండి.`,
+    install: 'ఇన్‌స్టాల్',
+    installed: 'AIQUIZ ఇన్‌స్టాల్ అయింది! హోమ్ స్క్రీన్ నుండి తెరవండి.',
+    ios_install: 'ఇన్‌స్టాల్ చేయడానికి: Share నొక్కి, “Add to Home Screen” ఎంచుకోండి.',
   },
   hindi: {
     hero_title: 'किसी भी पेज को क्विज़ में बदलें',
@@ -105,6 +111,9 @@ const I18N = {
     copied: 'परिणाम कॉपी हो गया!',
     no_cam: 'कैमरा नहीं — अपलोड का उपयोग करें या टॉपिक टाइप करें।',
     cam_fail: (e) => `कैमरा उपलब्ध नहीं (${e})। अपलोड का उपयोग करें या टॉपिक टाइप करें।`,
+    install: 'इंस्टॉल',
+    installed: 'AIQUIZ इंस्टॉल हो गया! होम स्क्रीन से खोलें।',
+    ios_install: 'इंस्टॉल करने के लिए: Share दबाएं, फिर “Add to Home Screen” चुनें।',
   },
 };
 
@@ -461,3 +470,33 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
+
+// ---------- Install (Add to Home Screen) ----------
+let deferredPrompt = null;
+const installBtn = $('installBtn');
+const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!isStandalone) installBtn.hidden = false;
+});
+window.addEventListener('appinstalled', () => {
+  installBtn.hidden = true;
+  deferredPrompt = null;
+  banner(t('installed'));
+});
+installBtn.onclick = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.hidden = true;
+  } else if (isIOS) {
+    banner(t('ios_install')); // iOS Safari has no prompt API
+  }
+};
+// iOS never fires beforeinstallprompt — show the button with manual instructions.
+if (isIOS && !isStandalone) installBtn.hidden = false;
