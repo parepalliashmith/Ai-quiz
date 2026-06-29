@@ -100,10 +100,32 @@ function parseQuiz(text) {
   return JSON.parse(s.slice(start, end + 1));
 }
 
-// files: array of { buffer, mimetype } (may be empty when a text topic is given)
+// Each model has its own free-tier quota, so if the primary is exhausted we
+// fall back to the next one automatically.
+const MODEL_CHAIN = [
+  GEMINI_MODEL,
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+].filter((m, i, a) => m && a.indexOf(m) === i);
+
+// Try each model in turn; only an AI_LIMIT (quota) error advances to the next.
 async function generateQuiz(files, opts) {
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+  let lastErr;
+  for (const model of MODEL_CHAIN) {
+    try {
+      return await generateWithModel(model, files, opts);
+    } catch (e) {
+      lastErr = e;
+      if (e.code !== 'AI_LIMIT') throw e; // real error → stop
+      // else: quota on this model, try the next one
+    }
+  }
+  throw lastErr;
+}
+
+async function generateWithModel(model, files, opts) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const parts = [{ text: buildPrompt(opts) }];
   for (const f of files) {
     parts.push({
