@@ -200,7 +200,8 @@ const sections = ['onboarding', 'capture', 'loading', 'quiz', 'results'];
 let loadingTimer = null;
 function show(name) {
   sections.forEach((s) => ($(s).hidden = s !== name));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const wrap = document.querySelector('.wrap');
+  if (wrap) wrap.scrollTo({ top: 0, behavior: 'smooth' });
   clearInterval(loadingTimer);
   if (name === 'loading') {
     const msgs = t('loading_msgs') || [t('loading_title')];

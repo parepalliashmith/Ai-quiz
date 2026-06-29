@@ -36,10 +36,13 @@ html[data-theme="dark"] {
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
+  height: 100%;
   /* stop browser pull-to-refresh / overscroll search when dragging from the top */
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
 }
 body {
+  /* body itself never scrolls — only the inner .wrap does → no pull-to-refresh */
+  height: 100dvh; overflow: hidden; display: flex; flex-direction: column;
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -58,8 +61,9 @@ body {
 h1, h2, h3, .brand { font-family: var(--font-display); letter-spacing: -0.02em; }
 
 .topbar {
+  flex: 0 0 auto;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px; position: sticky; top: 0; z-index: 5;
+  padding: 14px 18px; z-index: 5;
   background: color-mix(in srgb, var(--bg) 75%, transparent);
   backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
 }
@@ -81,7 +85,10 @@ h1, h2, h3, .brand { font-family: var(--font-display); letter-spacing: -0.02em; 
 }
 .icon-btn:active { transform: scale(.92); }
 
-.wrap { max-width: 640px; margin: 0 auto; padding: 18px 16px 70px; }
+.wrap {
+  flex: 1 1 auto; width: 100%; max-width: 640px; margin: 0 auto; padding: 18px 16px 70px;
+  overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
+}
 
 .card {
   position: relative;
