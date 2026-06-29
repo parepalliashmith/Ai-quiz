@@ -347,7 +347,16 @@ let pages = [];
 async function startCamera() {
   stopCamera();
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
+    // Request the highest resolution the browser will allow (usually up to 4K / ~12MP).
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: facing,
+        width: { ideal: 4096 },
+        height: { ideal: 4096 },
+        advanced: [{ width: 4096, height: 4096 }],
+      },
+      audio: false,
+    });
     video.srcObject = stream;
     video.hidden = false;
     $('frameGuide').hidden = false;
@@ -425,7 +434,7 @@ function capture() {
   canvas.height = h;
   canvas.getContext('2d').drawImage(video, 0, 0, w, h);
   if (sharpnessScore(canvas) < 22) setTimeout(() => banner(t('blurry')), 250); // gentle blur nudge
-  canvas.toBlob((blob) => addPage(blob), 'image/jpeg', 0.9);
+  canvas.toBlob((blob) => addPage(blob), 'image/jpeg', 0.95);
 }
 
 // Rough sharpness metric (variance of Laplacian on a downscaled grayscale copy).
@@ -483,10 +492,33 @@ $('flipBtn').onclick = () => {
   facing = facing === 'environment' ? 'user' : 'environment';
   startCamera();
 };
-$('fileInput').onchange = (e) => {
-  [...e.target.files].forEach((f) => addPage(f));
+$('fileInput').onchange = async (e) => {
+  const files = [...e.target.files];
   e.target.value = '';
+  for (const f of files) addPage(await normalizeImage(f));
 };
+
+// Keep full quality, but cap huge photos (e.g. 50MP) to a sharp, upload-safe size.
+function normalizeImage(file) {
+  return new Promise((resolve) => {
+    if (file.type === 'application/pdf' || !file.type.startsWith('image/')) return resolve(file);
+    const MAX = 3500; // long edge — plenty for crisp text, reliable upload
+    const img = new Image();
+    img.onload = () => {
+      const long = Math.max(img.width, img.height);
+      if (long <= MAX && file.size <= 6 * 1024 * 1024) { URL.revokeObjectURL(img.src); return resolve(file); }
+      const s = Math.min(1, MAX / long);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s);
+      c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src);
+      c.toBlob((b) => resolve(b || file), 'image/jpeg', 0.95);
+    };
+    img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
 $('topicInput').oninput = () => {
   $('topicChips').querySelectorAll('.chip').forEach((x) => x.classList.remove('active'));
   syncGenerate();

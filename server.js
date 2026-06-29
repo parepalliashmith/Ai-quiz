@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Keep uploaded photos in memory; we forward them straight to Gemini.
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 12 * 1024 * 1024, files: 10 },
+  limits: { fileSize: 25 * 1024 * 1024, files: 10 }, // allow large high-MP photos
 });
 
 const LANGUAGES = {
