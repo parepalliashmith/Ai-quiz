@@ -266,6 +266,26 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 }
 
 /* Quiz */
+.back-btn {
+  background: var(--card2); border: 1px solid var(--line); color: var(--text);
+  padding: 8px 14px; border-radius: 99px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  margin-bottom: 12px; display: inline-flex; align-items: center; gap: 4px;
+}
+.back-btn:active { transform: scale(.96); }
+
+.modal {
+  position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(6px); padding: 20px;
+}
+.modal[hidden] { display: none; }
+.modal-card {
+  max-width: 480px; width: 100%; background: var(--card); border: 1px solid var(--line);
+  border-radius: 18px; padding: 14px; box-shadow: var(--shadow);
+}
+.modal-card img { width: 100%; border-radius: 12px; display: block; max-height: 70vh; object-fit: contain; }
+.modal-actions { display: flex; gap: 10px; margin-top: 12px; }
+.modal-actions .btn { flex: 1; }
+
 .quiz-head { margin-bottom: 14px; }
 .quiz-stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .pill {

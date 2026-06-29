@@ -173,6 +173,7 @@
         <div id="tutorBubble" class="tutor-bubble" hidden></div>
       </div>
 
+      <button id="quizBackBtn" class="back-btn" title="Exit quiz">← <span data-i18n="exit">Exit</span></button>
       <div class="quiz-head">
         <h2 id="quizTopic">Quiz</h2>
         <p id="quizSummary" class="muted"></p>
@@ -206,6 +207,17 @@
       <button id="restartBtn" class="btn primary big">📷 <span data-i18n="scan_another">Scan another</span></button>
     </section>
   </main>
+
+  <!-- full-size photo preview -->
+  <div id="previewModal" class="modal" hidden>
+    <div class="modal-card">
+      <img id="previewImg" alt="Captured page" />
+      <div class="modal-actions">
+        <button id="previewRetake" class="btn ghost">🗑️ <span data-i18n="remove">Remove</span></button>
+        <button id="previewClose" class="btn primary"><span data-i18n="close">Close</span></button>
+      </div>
+    </div>
+  </div>
 
   <p id="banner" class="banner" hidden></p>
   <script src="app.js"></script>

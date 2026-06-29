@@ -46,6 +46,9 @@ const I18N = {
     neg_mark: '✍️ Exam mode — negative marking (−0.25 per wrong)',
     quiz_lang: 'Quiz language',
     mode: 'Quiz type', mode_study: '📚 Study material', mode_observe: '🔍 Observe a picture',
+    exit: 'Exit', remove: 'Remove', close: 'Close',
+    blurry: '📷 Photo looks blurry — tap it to check, or retake for a better quiz.',
+    no_voice: '🔊 Voice for this language is not installed on your device — narration may be silent.',
     st_total: 'Quizzes', st_avg: 'Avg score', st_best: 'Best', st_streak: 'Day streak',
     net_score: (n, t) => `Net score: ${n} / ${t} (with negative marking)`,
   },
@@ -91,6 +94,9 @@ const I18N = {
     neg_mark: '✍️ ఎగ్జామ్ మోడ్ — నెగటివ్ మార్కింగ్ (తప్పుకు −0.25)',
     quiz_lang: 'క్విజ్ భాష',
     mode: 'క్విజ్ రకం', mode_study: '📚 స్టడీ మెటీరియల్', mode_observe: '🔍 ఫోటోను గమనించు',
+    exit: 'నిష్క్రమించు', remove: 'తొలగించు', close: 'మూసివేయి',
+    blurry: '📷 ఫోటో మసకగా ఉంది — చూడటానికి నొక్కండి, లేదా మంచి క్విజ్ కోసం మళ్లీ తీయండి.',
+    no_voice: '🔊 ఈ భాష వాయిస్ మీ ఫోన్‌లో లేదు — నేరేషన్ వినిపించకపోవచ్చు.',
     st_total: 'క్విజ్‌లు', st_avg: 'సగటు స్కోర్', st_best: 'అత్యుత్తమం', st_streak: 'రోజుల స్ట్రీక్',
     net_score: (n, t) => `నెట్ స్కోర్: ${n} / ${t} (నెగటివ్ మార్కింగ్‌తో)`,
   },
@@ -136,6 +142,9 @@ const I18N = {
     neg_mark: '✍️ एग्ज़ाम मोड — नेगेटिव मार्किंग (गलत पर −0.25)',
     quiz_lang: 'क्विज़ भाषा',
     mode: 'क्विज़ प्रकार', mode_study: '📚 अध्ययन सामग्री', mode_observe: '🔍 तस्वीर देखें',
+    exit: 'बाहर', remove: 'हटाएं', close: 'बंद करें',
+    blurry: '📷 तस्वीर धुंधली लग रही है — देखने के लिए टैप करें, या बेहतर क्विज़ के लिए फिर से लें.',
+    no_voice: '🔊 इस भाषा की आवाज़ आपके फ़ोन में नहीं है — नैरेशन शायद न सुनाई दे.',
     st_total: 'क्विज़', st_avg: 'औसत स्कोर', st_best: 'सर्वश्रेष्ठ', st_streak: 'दिन स्ट्रीक',
     net_score: (n, t) => `नेट स्कोर: ${n} / ${t} (नेगेटिव मार्किंग के साथ)`,
   },
@@ -217,8 +226,20 @@ const Mascot = {
 };
 
 let narratorOn = localStorage.getItem('aiquiz_narrator') !== 'off';
+let voiceWarned = false;
+// Warn once if the chosen quiz language has no installed TTS voice.
+function checkVoice() {
+  if (voiceWarned || !('speechSynthesis' in window)) return;
+  const want = (SPEECH_LANG[$('quizLang') ? $('quizLang').value : lang] || 'en').slice(0, 2);
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length && !voices.some((v) => (v.lang || '').toLowerCase().startsWith(want))) {
+    voiceWarned = true;
+    banner(t('no_voice'));
+  }
+}
 function narrate() {
   if (!quiz) return;
+  checkVoice();
   const q = quiz.questions[current];
   const text = `${q.question}. ${q.options.map((o, i) => `${i + 1}. ${o}`).join('. ')}`;
   Mascot.speak(text);
@@ -363,15 +384,35 @@ function renderPages() {
       ? `<span class="pdf-ico">📄</span>PDF`
       : `<img src="${p.url}" alt="">`;
     div.innerHTML = `<span class="num">${i + 1}</span><button class="del">✕</button>${body}`;
-    div.querySelector('.del').onclick = () => {
+    div.querySelector('.del').onclick = (e) => {
+      e.stopPropagation();
       URL.revokeObjectURL(p.url);
       pages.splice(i, 1);
       renderPages();
     };
+    if (!isPdf) div.onclick = () => openPreview(i); // tap thumbnail to view full-size
     strip.appendChild(div);
   });
   syncGenerate();
 }
+
+// Full-size photo preview so users can check clarity before generating.
+let previewIdx = -1;
+function openPreview(i) {
+  previewIdx = i;
+  $('previewImg').src = pages[i].url;
+  $('previewModal').hidden = false;
+}
+$('previewClose').onclick = () => ($('previewModal').hidden = true);
+$('previewRetake').onclick = () => {
+  if (previewIdx >= 0 && pages[previewIdx]) {
+    URL.revokeObjectURL(pages[previewIdx].url);
+    pages.splice(previewIdx, 1);
+    renderPages();
+  }
+  $('previewModal').hidden = true;
+};
+$('previewModal').onclick = (e) => { if (e.target.id === 'previewModal') $('previewModal').hidden = true; };
 function capture() {
   if (!stream) return banner(t('no_cam'));
   // flash animation + haptic for a satisfying "snap"
@@ -383,7 +424,36 @@ function capture() {
   canvas.width = w;
   canvas.height = h;
   canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+  if (sharpnessScore(canvas) < 22) setTimeout(() => banner(t('blurry')), 250); // gentle blur nudge
   canvas.toBlob((blob) => addPage(blob), 'image/jpeg', 0.9);
+}
+
+// Rough sharpness metric (variance of Laplacian on a downscaled grayscale copy).
+// Higher = sharper. Used only to nudge the user, never to block.
+function sharpnessScore(srcCanvas) {
+  try {
+    const w = 160, h = 120;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(srcCanvas, 0, 0, w, h);
+    const d = ctx.getImageData(0, 0, w, h).data;
+    const g = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) g[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
+    let mean = 0, n = 0;
+    const lap = new Float32Array(w * h);
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x;
+        const v = 4 * g[i] - g[i - 1] - g[i + 1] - g[i - w] - g[i + w];
+        lap[i] = v; mean += v; n++;
+      }
+    }
+    mean /= n;
+    let varSum = 0;
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const v = lap[y * w + x] - mean; varSum += v * v; }
+    return Math.sqrt(varSum / n);
+  } catch { return 999; }
 }
 
 // Torch / flashlight (supported on most Android back cameras)
@@ -573,6 +643,14 @@ $('nextBtn').onclick = () => {
   current++;
   if (current >= quiz.questions.length) showResults();
   else renderQuestion();
+};
+
+// Exit the quiz back to the capture screen at any time.
+$('quizBackBtn').onclick = () => {
+  Mascot.stop();
+  clearInterval(timerId);
+  show('capture');
+  startCamera();
 };
 
 function showResults() {
