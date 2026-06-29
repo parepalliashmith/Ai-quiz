@@ -1,48 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>ScanQuiz · Crack any exam</title>
+  <title>AIQUIZ · Learn anything, test yourself</title>
+  <meta name="theme-color" content="#4f46e5" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">📚</span> ScanQuiz</div>
-    <div class="tag">For competitive exam aspirants</div>
+    <div class="brand"><span class="logo">🧠</span> AIQUIZ</div>
+    <div class="top-actions">
+      <select id="langSwitch" class="lang-switch" title="Language">
+        <option value="english">EN</option>
+        <option value="telugu">తెలుగు</option>
+        <option value="hindi">हिन्दी</option>
+      </select>
+      <button id="themeToggle" class="icon-btn" title="Theme">🌙</button>
+    </div>
   </header>
 
   <main class="wrap">
+    <!-- ONBOARDING -->
+    <section id="onboarding" class="card hero">
+      <div class="hero-emoji">🧠📸</div>
+      <h1 data-i18n="hero_title">Turn any page into a quiz</h1>
+      <p class="muted" data-i18n="hero_sub">Scan your books or notes, or just type a topic — AIQUIZ builds exam-style questions so you learn faster. Made for competitive exam aspirants.</p>
+      <div class="steps">
+        <div class="step"><span class="step-ico">📷</span><b data-i18n="step1_t">Scan or type</b><small data-i18n="step1_d">Capture pages or enter a topic</small></div>
+        <div class="step"><span class="step-ico">✨</span><b data-i18n="step2_t">AI builds a quiz</b><small data-i18n="step2_d">Instant questions on your material</small></div>
+        <div class="step"><span class="step-ico">🏆</span><b data-i18n="step3_t">Test & improve</b><small data-i18n="step3_d">Score, review, track progress</small></div>
+      </div>
+      <button id="startBtn" class="btn primary big" data-i18n="get_started">Get started →</button>
+    </section>
+
     <!-- STEP 1: Capture -->
-    <section id="capture" class="card">
-      <h1>Scan your study material</h1>
-      <p class="muted">Capture textbook pages, notes, or any topic. Add as many pages as you like — we'll build one exam-style quiz from all of them. Covers every subject.</p>
+    <section id="capture" class="card" hidden>
+      <h1 data-i18n="cap_title">Scan your study material</h1>
+      <p class="muted" data-i18n="cap_sub">Add as many pages as you like — we'll build one quiz from all of them.</p>
 
       <div class="camera-box">
         <video id="video" autoplay playsinline muted></video>
+        <div class="frame-guide" id="frameGuide"></div>
         <canvas id="canvas" hidden></canvas>
         <div id="camError" class="cam-error" hidden></div>
       </div>
+      <p class="hint" data-i18n="cap_hint">📋 Place the page flat inside the frame and tap “Add page”.</p>
 
-      <!-- Captured pages -->
       <div id="pageStrip" class="page-strip" hidden></div>
 
       <div class="controls">
-        <button id="snapBtn" class="btn primary">📷 Add page</button>
-        <button id="flipBtn" class="btn ghost" title="Switch camera">🔄 Flip</button>
+        <button id="snapBtn" class="btn primary"><span data-i18n="add_page">Add page</span></button>
+        <button id="flipBtn" class="btn ghost" title="Switch camera">🔄</button>
         <label class="btn ghost file">
-          🖼️ Upload
+          🖼️ <span data-i18n="upload">Upload</span>
           <input id="fileInput" type="file" accept="image/*" multiple hidden />
         </label>
       </div>
 
-      <div class="divider"><span>or</span></div>
-      <label class="topic-field">Type a topic instead
-        <input id="topicInput" type="text" placeholder="e.g. Indian Polity – Fundamental Rights" />
+      <div class="divider"><span data-i18n="or">or</span></div>
+      <label class="topic-field"><span data-i18n="type_topic">Type a topic instead</span>
+        <input id="topicInput" type="text" data-i18n-ph="topic_ph" placeholder="e.g. Indian Polity – Fundamental Rights" />
       </label>
 
       <div class="options">
-        <label>Questions
+        <label><span data-i18n="questions">Questions</span>
           <select id="count">
             <option>5</option>
             <option selected>10</option>
@@ -50,29 +72,21 @@
             <option>20</option>
           </select>
         </label>
-        <label>Difficulty
+        <label><span data-i18n="difficulty">Difficulty</span>
           <select id="difficulty">
-            <option value="easy">Easy</option>
-            <option value="medium" selected>Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </label>
-        <label>Language
-          <select id="language">
-            <option value="english" selected>English</option>
-            <option value="telugu">తెలుగు</option>
-            <option value="hindi">हिन्दी</option>
+            <option value="easy" data-i18n="easy">Easy</option>
+            <option value="medium" selected data-i18n="medium">Medium</option>
+            <option value="hard" data-i18n="hard">Hard</option>
           </select>
         </label>
       </div>
 
-      <button id="generateBtn" class="btn primary big" disabled>✨ Generate quiz</button>
+      <button id="generateBtn" class="btn primary big" disabled><span data-i18n="generate">Generate quiz</span> ✨</button>
 
-      <!-- Score history -->
       <div id="historyBox" class="history" hidden>
         <div class="history-head">
-          <h3>📊 Your score history</h3>
-          <button id="clearHistory" class="btn ghost small">🗑️ Clear all</button>
+          <h3 data-i18n="history_title">📊 Your score history</h3>
+          <button id="clearHistory" class="btn ghost small"><span data-i18n="clear_all">Clear all</span></button>
         </div>
         <div id="historyList"></div>
       </div>
@@ -81,8 +95,9 @@
     <!-- STEP 2: Loading -->
     <section id="loading" class="card center" hidden>
       <div class="spinner"></div>
-      <h2>Reading your material…</h2>
-      <p class="muted">Understanding the topic and writing exam-style questions.</p>
+      <h2 data-i18n="loading_title">Reading your material…</h2>
+      <p class="muted" data-i18n="loading_sub">Understanding the topic and writing questions.</p>
+      <p class="muted small-note" data-i18n="loading_note">First time may take up to a minute — please wait.</p>
     </section>
 
     <!-- STEP 3: Quiz -->
@@ -91,11 +106,16 @@
         <h2 id="quizTopic">Quiz</h2>
         <p id="quizSummary" class="muted"></p>
       </div>
+      <div class="quiz-stats">
+        <span id="qCounter" class="pill"></span>
+        <span id="liveScore" class="pill score"></span>
+        <span id="timer" class="pill">⏱️ 0:00</span>
+      </div>
       <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
       <div id="questionArea"></div>
       <div class="quiz-foot">
-        <span id="qCounter" class="muted"></span>
-        <button id="nextBtn" class="btn primary" disabled>Next →</button>
+        <button id="skipBtn" class="btn ghost"><span data-i18n="skip">Skip</span></button>
+        <button id="nextBtn" class="btn primary" disabled><span data-i18n="next">Next</span> →</button>
       </div>
     </section>
 
@@ -104,8 +124,13 @@
       <div id="scoreRing" class="score-ring"><span id="scoreText">0%</span></div>
       <h2 id="scoreHeadline">Nice work!</h2>
       <p id="scoreDetail" class="muted"></p>
+      <div class="result-actions">
+        <button id="retryBtn" class="btn ghost">🔁 <span data-i18n="retry">Retry</span></button>
+        <button id="shareBtn" class="btn ghost">📤 <span data-i18n="share">Share</span></button>
+      </div>
+      <label class="wrong-toggle"><input type="checkbox" id="wrongOnly" /> <span data-i18n="wrong_only">Show wrong answers only</span></label>
       <div id="reviewList" class="review"></div>
-      <button id="restartBtn" class="btn primary big">📷 Scan another</button>
+      <button id="restartBtn" class="btn primary big">📷 <span data-i18n="scan_another">Scan another</span></button>
     </section>
   </main>
 
