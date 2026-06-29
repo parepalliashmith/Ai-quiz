@@ -120,7 +120,18 @@ async function generateQuiz(files, opts) {
     body: JSON.stringify(body),
   });
   const data = await r.json();
-  if (!r.ok) throw new Error(data?.error?.message || `Gemini failed (${r.status})`);
+  if (!r.ok) {
+    const msg = data?.error?.message || `Gemini failed (${r.status})`;
+    if (r.status === 429 || /quota|rate limit|resource has been exhausted/i.test(msg)) {
+      const e = new Error(
+        'Free AI limit reached for now. Please try again in a minute — or a little later today. ' +
+          '(The free Gemini quota resets automatically.)'
+      );
+      e.code = 'AI_LIMIT';
+      throw e;
+    }
+    throw new Error(msg);
+  }
   const text = (data?.candidates?.[0]?.content?.parts || []).map((p) => p.text || '').join('');
   return parseQuiz(text);
 }
@@ -158,7 +169,7 @@ app.post('/api/quiz', upload.array('images', 10), async (req, res) => {
     }
     res.json(quiz);
   } catch (e) {
-    res.status(502).json({ error: e.message });
+    res.status(e.code === 'AI_LIMIT' ? 429 : 502).json({ error: e.message });
   }
 });
 
