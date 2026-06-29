@@ -327,11 +327,13 @@ async function startCamera() {
     video.srcObject = stream;
     video.hidden = false;
     $('frameGuide').hidden = false;
+    $('shutterBtn').hidden = false;
     $('camError').hidden = true;
     setupTorch();
   } catch (e) {
     video.hidden = true;
     $('frameGuide').hidden = true;
+    $('shutterBtn').hidden = true;
     const err = $('camError');
     err.hidden = false;
     err.textContent = t('cam_fail')(e.name || 'error');
@@ -403,6 +405,7 @@ function syncGenerate() {
 }
 
 $('snapBtn').onclick = capture;
+$('shutterBtn').onclick = capture;
 $('flipBtn').onclick = () => {
   facing = facing === 'environment' ? 'user' : 'environment';
   startCamera();
