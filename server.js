@@ -9,7 +9,13 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+// Support several free keys (comma-separated) so we can rotate when one hits its
+// daily limit — that multiplies the free quota at zero cost.
+const GEMINI_KEYS = (process.env.GEMINI_API_KEY || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const GEMINI_API_KEY = GEMINI_KEYS[0] || '';
 // Vision + text model on the free tier. Reads the page and writes the quiz.
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
@@ -109,22 +115,25 @@ const MODEL_CHAIN = [
   'gemini-2.0-flash-lite',
 ].filter((m, i, a) => m && a.indexOf(m) === i);
 
-// Try each model in turn; only an AI_LIMIT (quota) error advances to the next.
+// Try every key × model combination; only an AI_LIMIT (quota/busy) error advances.
+// This multiplies free capacity: each key has its own quota, each model too.
 async function generateQuiz(files, opts) {
   let lastErr;
-  for (const model of MODEL_CHAIN) {
-    try {
-      return await generateWithModel(model, files, opts);
-    } catch (e) {
-      lastErr = e;
-      if (e.code !== 'AI_LIMIT') throw e; // real error → stop
-      // else: quota on this model, try the next one
+  for (const key of GEMINI_KEYS) {
+    for (const model of MODEL_CHAIN) {
+      try {
+        return await generateWithModel(model, key, files, opts);
+      } catch (e) {
+        lastErr = e;
+        if (e.code !== 'AI_LIMIT') throw e; // real error → stop
+        // else: this key+model is rate-limited, try the next combination
+      }
     }
   }
   throw lastErr;
 }
 
-async function generateWithModel(model, files, opts) {
+async function generateWithModel(model, key, files, opts) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const parts = [{ text: buildPrompt(opts) }];
   for (const f of files) {
@@ -138,7 +147,7 @@ async function generateWithModel(model, files, opts) {
   };
   const r = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify(body),
   });
   const data = await r.json();
