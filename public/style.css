@@ -35,6 +35,10 @@ html[data-theme="dark"] {
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  /* stop browser pull-to-refresh / overscroll search when dragging from the top */
+  overscroll-behavior-y: none;
+}
 body {
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
