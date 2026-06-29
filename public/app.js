@@ -40,6 +40,9 @@ const I18N = {
     install: 'Install',
     installed: 'AIQUIZ installed! Open it from your home screen.',
     ios_install: 'To install: tap Share, then “Add to Home Screen”.',
+    quick_topics: '⚡ Quick topics — tap to start',
+    chips: ['General Knowledge', 'Indian Polity', 'History', 'Geography', 'General Science', 'Current Affairs', 'Mathematics', 'Reasoning'],
+    loading_msgs: ['Reading your material…', 'Finding the key concepts…', 'Writing exam-style questions…', 'Almost ready…'],
   },
   telugu: {
     hero_title: 'ఏ పేజీనైనా క్విజ్‌గా మార్చండి',
@@ -77,6 +80,9 @@ const I18N = {
     install: 'ఇన్‌స్టాల్',
     installed: 'AIQUIZ ఇన్‌స్టాల్ అయింది! హోమ్ స్క్రీన్ నుండి తెరవండి.',
     ios_install: 'ఇన్‌స్టాల్ చేయడానికి: Share నొక్కి, “Add to Home Screen” ఎంచుకోండి.',
+    quick_topics: '⚡ త్వరిత టాపిక్‌లు — నొక్కి మొదలుపెట్టండి',
+    chips: ['జనరల్ నాలెడ్జ్', 'ఇండియన్ పాలిటీ', 'చరిత్ర', 'భూగోళశాస్త్రం', 'జనరల్ సైన్స్', 'కరెంట్ అఫైర్స్', 'గణితం', 'రీజనింగ్'],
+    loading_msgs: ['మీ మెటీరియల్ చదువుతోంది…', 'ముఖ్య అంశాలు కనుగొంటోంది…', 'పరీక్ష-శైలి ప్రశ్నలు రాస్తోంది…', 'దాదాపు సిద్ధం…'],
   },
   hindi: {
     hero_title: 'किसी भी पेज को क्विज़ में बदलें',
@@ -114,6 +120,9 @@ const I18N = {
     install: 'इंस्टॉल',
     installed: 'AIQUIZ इंस्टॉल हो गया! होम स्क्रीन से खोलें।',
     ios_install: 'इंस्टॉल करने के लिए: Share दबाएं, फिर “Add to Home Screen” चुनें।',
+    quick_topics: '⚡ त्वरित टॉपिक — टैप करके शुरू करें',
+    chips: ['सामान्य ज्ञान', 'भारतीय राजव्यवस्था', 'इतिहास', 'भूगोल', 'सामान्य विज्ञान', 'करंट अफेयर्स', 'गणित', 'रीज़निंग'],
+    loading_msgs: ['आपकी सामग्री पढ़ी जा रही है…', 'मुख्य अवधारणाएं ढूंढी जा रही हैं…', 'परीक्षा-शैली के प्रश्न लिखे जा रहे हैं…', 'लगभग तैयार…'],
   },
 };
 
@@ -132,6 +141,28 @@ function applyLang() {
   document.documentElement.lang =
     lang === 'telugu' ? 'te' : lang === 'hindi' ? 'hi' : 'en';
   $('langSwitch').value = lang;
+  renderChips();
+}
+
+// Quick-topic chips — tap to fill the topic and enable Generate.
+function renderChips() {
+  const box = $('topicChips');
+  if (!box) return;
+  box.innerHTML = '';
+  (t('chips') || []).forEach((label) => {
+    const c = document.createElement('button');
+    c.className = 'chip';
+    c.type = 'button';
+    c.textContent = label;
+    c.onclick = () => {
+      const already = $('topicInput').value.trim() === label;
+      $('topicInput').value = already ? '' : label;
+      box.querySelectorAll('.chip').forEach((x) => x.classList.remove('active'));
+      if (!already) c.classList.add('active');
+      syncGenerate();
+    };
+    box.appendChild(c);
+  });
 }
 
 $('langSwitch').onchange = (e) => {
@@ -155,9 +186,21 @@ $('themeToggle').onclick = () => {
 
 // ---------- Screens ----------
 const sections = ['onboarding', 'capture', 'loading', 'quiz', 'results'];
+let loadingTimer = null;
 function show(name) {
   sections.forEach((s) => ($(s).hidden = s !== name));
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  clearInterval(loadingTimer);
+  if (name === 'loading') {
+    const msgs = t('loading_msgs') || [t('loading_title')];
+    const h = document.querySelector('#loading h2');
+    let i = 0;
+    h.textContent = msgs[0];
+    loadingTimer = setInterval(() => {
+      i = (i + 1) % msgs.length;
+      h.textContent = msgs[i];
+    }, 2500);
+  }
 }
 function banner(msg) {
   const b = $('banner');
@@ -187,6 +230,7 @@ async function startCamera() {
     video.hidden = false;
     $('frameGuide').hidden = false;
     $('camError').hidden = true;
+    setupTorch();
   } catch (e) {
     video.hidden = true;
     $('frameGuide').hidden = true;
@@ -223,6 +267,10 @@ function renderPages() {
 }
 function capture() {
   if (!stream) return banner(t('no_cam'));
+  // flash animation + haptic for a satisfying "snap"
+  const fl = $('flash');
+  fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+  if (navigator.vibrate) navigator.vibrate(15);
   const w = video.videoWidth || 1280;
   const h = video.videoHeight || 960;
   canvas.width = w;
@@ -230,6 +278,24 @@ function capture() {
   canvas.getContext('2d').drawImage(video, 0, 0, w, h);
   canvas.toBlob((blob) => addPage(blob), 'image/jpeg', 0.9);
 }
+
+// Torch / flashlight (supported on most Android back cameras)
+let torchOn = false;
+function setupTorch() {
+  const track = stream && stream.getVideoTracks()[0];
+  const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+  $('torchBtn').hidden = !(caps && caps.torch);
+  torchOn = false;
+}
+$('torchBtn').onclick = async () => {
+  const track = stream && stream.getVideoTracks()[0];
+  if (!track) return;
+  try {
+    torchOn = !torchOn;
+    await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+    $('torchBtn').classList.toggle('active', torchOn);
+  } catch { /* not supported */ }
+};
 function syncGenerate() {
   $('generateBtn').disabled = pages.length === 0 && !$('topicInput').value.trim();
 }
@@ -243,7 +309,13 @@ $('fileInput').onchange = (e) => {
   [...e.target.files].forEach((f) => addPage(f));
   e.target.value = '';
 };
-$('topicInput').oninput = syncGenerate;
+$('topicInput').oninput = () => {
+  $('topicChips').querySelectorAll('.chip').forEach((x) => x.classList.remove('active'));
+  syncGenerate();
+};
+$('topicInput').onkeydown = (e) => {
+  if (e.key === 'Enter' && !$('generateBtn').disabled) $('generateBtn').click();
+};
 
 // ---------- Generate ----------
 $('generateBtn').onclick = async () => {
@@ -346,8 +418,10 @@ function reveal(area, q, chosenIdx) {
 }
 
 function choose(i, area, q) {
-  if (i === q.correctIndex) score++;
-  answers.push({ q: q.question, chosen: q.options[i], correct: q.options[q.correctIndex], isRight: i === q.correctIndex });
+  const right = i === q.correctIndex;
+  if (right) score++;
+  if (navigator.vibrate) navigator.vibrate(right ? 20 : [25, 40, 25]);
+  answers.push({ q: q.question, chosen: q.options[i], correct: q.options[q.correctIndex], isRight: right });
   $('liveScore').textContent = `${t('score')}: ${score}`;
   reveal(area, q, i);
 }
@@ -376,6 +450,25 @@ function showResults() {
   $('wrongOnly').checked = false;
   renderReview(false);
   saveHistory({ topic: quiz.topic || 'Quiz', score, total, pct });
+  if (pct >= 70) {
+    confetti();
+    if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 60]);
+  }
+}
+
+// Lightweight DOM confetti — no library.
+function confetti() {
+  const colors = ['#4f46e5', '#7c6cff', '#06b6d4', '#16a34a', '#f59e0b', '#e11d48'];
+  for (let i = 0; i < 36; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = (5 + (i / 36) * 90) + 'vw';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDuration = (1.6 + (i % 5) * 0.25) + 's';
+    p.style.animationDelay = (i % 8) * 0.06 + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 3200);
+  }
 }
 
 function renderReview(wrongOnly) {

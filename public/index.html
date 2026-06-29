@@ -49,6 +49,7 @@
       <div class="camera-box">
         <video id="video" autoplay playsinline muted></video>
         <div class="frame-guide" id="frameGuide"></div>
+        <div id="flash" class="flash"></div>
         <canvas id="canvas" hidden></canvas>
         <div id="camError" class="cam-error" hidden></div>
       </div>
@@ -59,6 +60,7 @@
       <div class="controls">
         <button id="snapBtn" class="btn primary"><span data-i18n="add_page">Add page</span></button>
         <button id="flipBtn" class="btn ghost" title="Switch camera">🔄</button>
+        <button id="torchBtn" class="btn ghost" title="Flash" hidden>🔦</button>
         <label class="btn ghost file">
           🖼️ <span data-i18n="upload">Upload</span>
           <input id="fileInput" type="file" accept="image/*" multiple hidden />
@@ -69,6 +71,8 @@
       <label class="topic-field"><span data-i18n="type_topic">Type a topic instead</span>
         <input id="topicInput" type="text" data-i18n-ph="topic_ph" placeholder="e.g. Indian Polity – Fundamental Rights" />
       </label>
+      <div class="chips-label muted" data-i18n="quick_topics">⚡ Quick topics — tap to start</div>
+      <div id="topicChips" class="chips"></div>
 
       <div class="options">
         <label><span data-i18n="questions">Questions</span>
