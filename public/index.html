@@ -131,6 +131,37 @@
 
     <!-- STEP 3: Quiz -->
     <section id="quiz" class="card" hidden>
+      <!-- AI narrator character -->
+      <div id="tutor" class="tutor" title="Tap to replay">
+        <svg id="mascot" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+          <!-- antenna -->
+          <line x1="60" y1="20" x2="60" y2="8" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="60" cy="6" r="4" fill="var(--primary)"/>
+          <!-- head -->
+          <rect x="16" y="20" width="88" height="80" rx="26" fill="var(--card2)" stroke="var(--primary)" stroke-width="3"/>
+          <!-- ears -->
+          <rect x="8" y="48" width="8" height="22" rx="4" fill="var(--primary)"/>
+          <rect x="104" y="48" width="8" height="22" rx="4" fill="var(--primary)"/>
+          <!-- brows -->
+          <line id="browL" x1="34" y1="42" x2="50" y2="42" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+          <line id="browR" x1="70" y1="42" x2="86" y2="42" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+          <!-- eyes -->
+          <g id="eyes">
+            <ellipse id="eyeL" cx="44" cy="56" rx="7" ry="9" fill="var(--text)"/>
+            <ellipse id="eyeR" cx="76" cy="56" rx="7" ry="9" fill="var(--text)"/>
+          </g>
+          <!-- cheeks -->
+          <circle cx="34" cy="74" r="5" fill="var(--primary)" opacity=".25"/>
+          <circle cx="86" cy="74" r="5" fill="var(--primary)" opacity=".25"/>
+          <!-- mouth -->
+          <path id="smile" d="M46 78 Q60 88 74 78" fill="none" stroke="var(--text)" stroke-width="3.5" stroke-linecap="round"/>
+          <g id="mouthG">
+            <ellipse id="mouthOpen" cx="60" cy="80" rx="11" ry="8" fill="var(--text)"/>
+          </g>
+        </svg>
+        <div id="tutorBubble" class="tutor-bubble" hidden></div>
+      </div>
+
       <div class="quiz-head">
         <h2 id="quizTopic">Quiz</h2>
         <p id="quizSummary" class="muted"></p>
@@ -139,7 +170,8 @@
         <span id="qCounter" class="pill"></span>
         <span id="liveScore" class="pill score"></span>
         <span id="timer" class="pill">⏱️ 0:00</span>
-        <button id="speakBtn" class="pill btn-pill" title="Read aloud">🔊</button>
+        <button id="speakBtn" class="pill btn-pill" title="Replay">🔊</button>
+        <button id="muteBtn" class="pill btn-pill" title="Narrator on/off">🎙️</button>
       </div>
       <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
       <div id="questionArea"></div>

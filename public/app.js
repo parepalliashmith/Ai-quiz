@@ -140,6 +140,87 @@ const I18N = {
 // BCP-47 codes for speech synthesis.
 const SPEECH_LANG = { english: 'en-IN', telugu: 'te-IN', hindi: 'hi-IN' };
 
+// ---------- AI narrator character (lip-sync + expressions) ----------
+const Mascot = {
+  el: null, talkTimer: null, blinkTimer: null,
+  init() {
+    this.el = document.getElementById('mascot');
+    if (!this.el) return;
+    this.blinkTimer = setInterval(() => this.blink(), 3600);
+  },
+  blink() {
+    if (!this.el || this.el.classList.contains('talking')) return;
+    this.el.classList.add('blink');
+    setTimeout(() => this.el && this.el.classList.remove('blink'), 150);
+  },
+  expr(state) {
+    if (!this.el) return;
+    this.el.classList.remove('happy', 'sad');
+    const smile = document.getElementById('smile');
+    const bL = document.getElementById('browL'), bR = document.getElementById('browR');
+    if (state === 'happy') {
+      this.el.classList.add('happy');
+      smile.setAttribute('d', 'M42 74 Q60 94 78 74');
+      bL.setAttribute('y1', '40'); bL.setAttribute('y2', '40');
+      bR.setAttribute('y1', '40'); bR.setAttribute('y2', '40');
+    } else if (state === 'sad') {
+      this.el.classList.add('sad');
+      smile.setAttribute('d', 'M46 88 Q60 74 74 88');
+      bL.setAttribute('y1', '40'); bL.setAttribute('y2', '46');   // angled down (worried)
+      bR.setAttribute('y1', '46'); bR.setAttribute('y2', '40');
+    } else { // idle
+      smile.setAttribute('d', 'M46 78 Q60 88 74 78');
+      bL.setAttribute('y1', '42'); bL.setAttribute('y2', '42');
+      bR.setAttribute('y1', '42'); bR.setAttribute('y2', '42');
+    }
+  },
+  startTalk() {
+    if (!this.el) return;
+    this.el.classList.add('talking');
+    clearInterval(this.talkTimer);
+    const mg = document.getElementById('mouthG');
+    this.talkTimer = setInterval(() => {
+      mg.style.transform = `scaleY(${(0.15 + Math.random() * 0.85).toFixed(2)})`;
+    }, 95);
+  },
+  stopTalk() {
+    if (!this.el) return;
+    this.el.classList.remove('talking');
+    clearInterval(this.talkTimer);
+    const mg = document.getElementById('mouthG');
+    if (mg) mg.style.transform = 'scaleY(0.08)';
+  },
+  speak(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = SPEECH_LANG[$('quizLang') ? $('quizLang').value : lang] || SPEECH_LANG[lang] || 'en-IN';
+    u.rate = 0.98; u.pitch = 1.15;
+    u.onstart = () => this.startTalk();
+    u.onboundary = () => {
+      const mg = document.getElementById('mouthG');
+      if (mg) mg.style.transform = 'scaleY(0.9)';
+    };
+    u.onend = () => this.stopTalk();
+    u.onerror = () => this.stopTalk();
+    this.startTalk(); // some browsers fire onstart late
+    synth.speak(u);
+  },
+  stop() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    this.stopTalk();
+  },
+};
+
+let narratorOn = localStorage.getItem('aiquiz_narrator') !== 'off';
+function narrate() {
+  if (!quiz) return;
+  const q = quiz.questions[current];
+  const text = `${q.question}. ${q.options.map((o, i) => `${i + 1}. ${o}`).join('. ')}`;
+  Mascot.speak(text);
+}
+
 let lang = localStorage.getItem('aiquiz_lang') || 'english';
 const t = (key) => (I18N[lang] && I18N[lang][key]) ?? I18N.english[key] ?? key;
 
@@ -391,8 +472,8 @@ function startQuiz(data) {
 }
 
 function renderQuestion() {
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  $('speakBtn').classList.remove('active');
+  Mascot.stop();
+  Mascot.expr('idle');
   const q = quiz.questions[current];
   const total = quiz.questions.length;
   $('progressBar').style.width = `${(current / total) * 100}%`;
@@ -416,6 +497,7 @@ function renderQuestion() {
     btn.onclick = () => choose(i, area, q);
     area.appendChild(btn);
   });
+  if (narratorOn) setTimeout(narrate, 350); // character reads the question aloud
 }
 
 function reveal(area, q, chosenIdx) {
@@ -443,27 +525,36 @@ function reveal(area, q, chosenIdx) {
 function choose(i, area, q) {
   const right = i === q.correctIndex;
   if (right) score++;
+  Mascot.stop();
+  Mascot.expr(right ? 'happy' : 'sad');
+  setTimeout(() => Mascot.expr('idle'), 1900);
   if (navigator.vibrate) navigator.vibrate(right ? 20 : [25, 40, 25]);
   answers.push({ q: q.question, chosen: q.options[i], correct: q.options[q.correctIndex], isRight: right });
   $('liveScore').textContent = `${t('score')}: ${score}`;
   reveal(area, q, i);
 }
 
-// Read the current question + options aloud (Text-to-Speech).
-function speakCurrent() {
+// Replay narration / tap the character to hear it again.
+function toggleNarration() {
   if (!('speechSynthesis' in window)) return banner('🔊 not supported on this device.');
-  const synth = window.speechSynthesis;
-  if (synth.speaking) { synth.cancel(); $('speakBtn').classList.remove('active'); return; }
-  const q = quiz.questions[current];
-  const text = `${q.question}. ${q.options.map((o, i) => `${i + 1}. ${o}`).join('. ')}`;
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = SPEECH_LANG[$('quizLang').value] || SPEECH_LANG[lang] || 'en-IN';
-  u.rate = 0.95;
-  u.onend = () => $('speakBtn').classList.remove('active');
-  $('speakBtn').classList.add('active');
-  synth.speak(u);
+  if (window.speechSynthesis.speaking) Mascot.stop();
+  else narrate();
 }
-$('speakBtn').onclick = speakCurrent;
+$('speakBtn').onclick = toggleNarration;
+$('mascot').onclick = toggleNarration;
+
+// Narrator on/off (auto-read each question).
+function updateMute() {
+  $('muteBtn').textContent = narratorOn ? '🎙️' : '🔇';
+  $('muteBtn').classList.toggle('active', narratorOn);
+}
+$('muteBtn').onclick = () => {
+  narratorOn = !narratorOn;
+  localStorage.setItem('aiquiz_narrator', narratorOn ? 'on' : 'off');
+  updateMute();
+  if (!narratorOn) Mascot.stop();
+  else narrate();
+};
 
 $('skipBtn').onclick = () => {
   const q = quiz.questions[current];
@@ -479,6 +570,7 @@ $('nextBtn').onclick = () => {
 
 function showResults() {
   clearInterval(timerId);
+  Mascot.stop();
   show('results');
   const total = quiz.questions.length;
   const pct = Math.round((score / total) * 100);
@@ -557,6 +649,7 @@ $('shareBtn').onclick = async () => {
 };
 
 $('restartBtn').onclick = () => {
+  Mascot.stop();
   pages.forEach((p) => URL.revokeObjectURL(p.url));
   pages = [];
   $('topicInput').value = '';
@@ -625,6 +718,8 @@ $('clearHistory').onclick = () => {
 applyTheme();
 applyLang();
 renderHistory();
+Mascot.init();
+updateMute();
 
 // Register service worker (makes the app installable / Play-Store ready).
 if ('serviceWorker' in navigator) {
