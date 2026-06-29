@@ -32,14 +32,48 @@ app.get('/api/health', (_req, res) =>
   res.json({ ok: true, configured: !!GEMINI_API_KEY, model: GEMINI_MODEL })
 );
 
-function buildPrompt({ count, difficulty, language, topic }) {
+const JSON_SHAPE =
+  `Respond with STRICT JSON only (no markdown, no code fences) in this shape:\n` +
+  `{\n` +
+  `  "topic": "short title",\n` +
+  `  "summary": "1-2 sentence summary",\n` +
+  `  "questions": [\n` +
+  `    {\n` +
+  `      "question": "...",\n` +
+  `      "options": ["A", "B", "C", "D"],\n` +
+  `      "correctIndex": 0,\n` +
+  `      "explanation": "why the correct answer is right"\n` +
+  `    }\n` +
+  `  ]\n` +
+  `}\n`;
+
+function buildPrompt({ count, difficulty, language, topic, mode }) {
   const n = Math.min(Math.max(parseInt(count, 10) || 5, 1), 20);
   const diff = ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium';
   const lang = LANGUAGES[language] || LANGUAGES.english;
+
+  // Observation mode: a quiz about WHAT is in a photo and WHERE it is.
+  if (mode === 'observe') {
+    return (
+      `You are creating an OBSERVATION quiz. Look very carefully at the attached photo(s) — ` +
+      `a room, scene, or arrangement of objects.\n\n` +
+      `Create exactly ${n} multiple-choice questions at ${diff} difficulty that test how ` +
+      `carefully someone observed the picture. Focus on: which objects are present; WHERE each ` +
+      `object is placed (left/right, top/bottom, foreground/background, on/under/next to/behind ` +
+      `other objects); their colours; how many there are (counts); sizes; and spatial ` +
+      `relationships between objects (e.g. "what is placed to the left of the bottle?"). ` +
+      `Base every question and answer STRICTLY on what is actually visible in the image — ` +
+      `never invent objects. Each question has exactly 4 options with ONE correct answer.\n\n` +
+      `Write EVERYTHING (questions, options, explanations, topic, summary) in ${lang}.\n\n` +
+      JSON_SHAPE +
+      `If the image is blank or unclear, return {"error":"no_content"}.`
+    );
+  }
+
+  // Default: study/competitive-exam quiz.
   const source = topic
     ? `the topic "${topic}"`
     : 'the attached image(s) of textbook pages, notes, or study material';
-
   return (
     `You are an expert tutor who prepares students for competitive exams ` +
     `(UPSC, SSC, banking, railways, state PSCs, GATE, entrance tests, etc.).\n\n` +
@@ -50,22 +84,8 @@ function buildPrompt({ count, difficulty, language, topic }) {
     `competitive exam would — not trivial wording. Each question has exactly 4 options with ` +
     `ONE correct answer.\n\n` +
     `Write EVERYTHING (questions, options, explanations, topic, summary) in ${lang}.\n\n` +
-    `Respond with STRICT JSON only (no markdown, no code fences) in this shape:\n` +
-    `{\n` +
-    `  "topic": "short title of the subject",\n` +
-    `  "summary": "1-2 sentence summary of the material",\n` +
-    `  "questions": [\n` +
-    `    {\n` +
-    `      "question": "...",\n` +
-    `      "options": ["A", "B", "C", "D"],\n` +
-    `      "correctIndex": 0,\n` +
-    `      "explanation": "why the correct answer is right"\n` +
-    `    }\n` +
-    `  ]\n` +
-    `}\n` +
-    (topic
-      ? ''
-      : `If the image(s) have no readable study content, return {"error":"no_content"}.`)
+    JSON_SHAPE +
+    (topic ? '' : `If the image(s) have no readable study content, return {"error":"no_content"}.`)
   );
 }
 
@@ -113,6 +133,10 @@ app.post('/api/quiz', upload.array('images', 10), async (req, res) => {
   }
   const files = req.files || [];
   const topic = (req.body.topic || '').trim();
+  const mode = req.body.mode === 'observe' ? 'observe' : 'study';
+  if (mode === 'observe' && !files.length) {
+    return res.status(400).json({ error: 'Capture or upload a picture to make an observation quiz.' });
+  }
   if (!files.length && !topic) {
     return res.status(400).json({ error: 'Capture at least one page, or type a topic.' });
   }
@@ -122,6 +146,7 @@ app.post('/api/quiz', upload.array('images', 10), async (req, res) => {
       difficulty: req.body.difficulty,
       language: req.body.language,
       topic,
+      mode,
     });
     if (quiz.error === 'no_content') {
       return res

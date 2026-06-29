@@ -45,6 +45,7 @@ const I18N = {
     loading_msgs: ['Reading your material…', 'Finding the key concepts…', 'Writing exam-style questions…', 'Almost ready…'],
     neg_mark: '✍️ Exam mode — negative marking (−0.25 per wrong)',
     quiz_lang: 'Quiz language',
+    mode: 'Quiz type', mode_study: '📚 Study material', mode_observe: '🔍 Observe a picture',
     st_total: 'Quizzes', st_avg: 'Avg score', st_best: 'Best', st_streak: 'Day streak',
     net_score: (n, t) => `Net score: ${n} / ${t} (with negative marking)`,
   },
@@ -89,6 +90,7 @@ const I18N = {
     loading_msgs: ['మీ మెటీరియల్ చదువుతోంది…', 'ముఖ్య అంశాలు కనుగొంటోంది…', 'పరీక్ష-శైలి ప్రశ్నలు రాస్తోంది…', 'దాదాపు సిద్ధం…'],
     neg_mark: '✍️ ఎగ్జామ్ మోడ్ — నెగటివ్ మార్కింగ్ (తప్పుకు −0.25)',
     quiz_lang: 'క్విజ్ భాష',
+    mode: 'క్విజ్ రకం', mode_study: '📚 స్టడీ మెటీరియల్', mode_observe: '🔍 ఫోటోను గమనించు',
     st_total: 'క్విజ్‌లు', st_avg: 'సగటు స్కోర్', st_best: 'అత్యుత్తమం', st_streak: 'రోజుల స్ట్రీక్',
     net_score: (n, t) => `నెట్ స్కోర్: ${n} / ${t} (నెగటివ్ మార్కింగ్‌తో)`,
   },
@@ -133,6 +135,7 @@ const I18N = {
     loading_msgs: ['आपकी सामग्री पढ़ी जा रही है…', 'मुख्य अवधारणाएं ढूंढी जा रही हैं…', 'परीक्षा-शैली के प्रश्न लिखे जा रहे हैं…', 'लगभग तैयार…'],
     neg_mark: '✍️ एग्ज़ाम मोड — नेगेटिव मार्किंग (गलत पर −0.25)',
     quiz_lang: 'क्विज़ भाषा',
+    mode: 'क्विज़ प्रकार', mode_study: '📚 अध्ययन सामग्री', mode_observe: '🔍 तस्वीर देखें',
     st_total: 'क्विज़', st_avg: 'औसत स्कोर', st_best: 'सर्वश्रेष्ठ', st_streak: 'दिन स्ट्रीक',
     net_score: (n, t) => `नेट स्कोर: ${n} / ${t} (नेगेटिव मार्किंग के साथ)`,
   },
@@ -432,6 +435,7 @@ $('generateBtn').onclick = async () => {
   fd.append('count', $('count').value);
   fd.append('difficulty', $('difficulty').value);
   fd.append('language', $('quizLang').value); // quiz output language (independent of app UI)
+  fd.append('mode', $('mode').value); // 'study' or 'observe'
   if (topic) fd.append('topic', topic);
   try {
     const r = await fetch('/api/quiz', { method: 'POST', body: fd });
