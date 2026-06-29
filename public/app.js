@@ -43,6 +43,9 @@ const I18N = {
     quick_topics: '⚡ Quick topics — tap to start',
     chips: ['General Knowledge', 'Indian Polity', 'History', 'Geography', 'General Science', 'Current Affairs', 'Mathematics', 'Reasoning'],
     loading_msgs: ['Reading your material…', 'Finding the key concepts…', 'Writing exam-style questions…', 'Almost ready…'],
+    neg_mark: '✍️ Exam mode — negative marking (−0.25 per wrong)',
+    st_total: 'Quizzes', st_avg: 'Avg score', st_best: 'Best', st_streak: 'Day streak',
+    net_score: (n, t) => `Net score: ${n} / ${t} (with negative marking)`,
   },
   telugu: {
     hero_title: 'ఏ పేజీనైనా క్విజ్‌గా మార్చండి',
@@ -83,6 +86,9 @@ const I18N = {
     quick_topics: '⚡ త్వరిత టాపిక్‌లు — నొక్కి మొదలుపెట్టండి',
     chips: ['జనరల్ నాలెడ్జ్', 'ఇండియన్ పాలిటీ', 'చరిత్ర', 'భూగోళశాస్త్రం', 'జనరల్ సైన్స్', 'కరెంట్ అఫైర్స్', 'గణితం', 'రీజనింగ్'],
     loading_msgs: ['మీ మెటీరియల్ చదువుతోంది…', 'ముఖ్య అంశాలు కనుగొంటోంది…', 'పరీక్ష-శైలి ప్రశ్నలు రాస్తోంది…', 'దాదాపు సిద్ధం…'],
+    neg_mark: '✍️ ఎగ్జామ్ మోడ్ — నెగటివ్ మార్కింగ్ (తప్పుకు −0.25)',
+    st_total: 'క్విజ్‌లు', st_avg: 'సగటు స్కోర్', st_best: 'అత్యుత్తమం', st_streak: 'రోజుల స్ట్రీక్',
+    net_score: (n, t) => `నెట్ స్కోర్: ${n} / ${t} (నెగటివ్ మార్కింగ్‌తో)`,
   },
   hindi: {
     hero_title: 'किसी भी पेज को क्विज़ में बदलें',
@@ -123,8 +129,13 @@ const I18N = {
     quick_topics: '⚡ त्वरित टॉपिक — टैप करके शुरू करें',
     chips: ['सामान्य ज्ञान', 'भारतीय राजव्यवस्था', 'इतिहास', 'भूगोल', 'सामान्य विज्ञान', 'करंट अफेयर्स', 'गणित', 'रीज़निंग'],
     loading_msgs: ['आपकी सामग्री पढ़ी जा रही है…', 'मुख्य अवधारणाएं ढूंढी जा रही हैं…', 'परीक्षा-शैली के प्रश्न लिखे जा रहे हैं…', 'लगभग तैयार…'],
+    neg_mark: '✍️ एग्ज़ाम मोड — नेगेटिव मार्किंग (गलत पर −0.25)',
+    st_total: 'क्विज़', st_avg: 'औसत स्कोर', st_best: 'सर्वश्रेष्ठ', st_streak: 'दिन स्ट्रीक',
+    net_score: (n, t) => `नेट स्कोर: ${n} / ${t} (नेगेटिव मार्किंग के साथ)`,
   },
 };
+// BCP-47 codes for speech synthesis.
+const SPEECH_LANG = { english: 'en-IN', telugu: 'te-IN', hindi: 'hi-IN' };
 
 let lang = localStorage.getItem('aiquiz_lang') || 'english';
 const t = (key) => (I18N[lang] && I18N[lang][key]) ?? I18N.english[key] ?? key;
@@ -254,8 +265,12 @@ function renderPages() {
   strip.hidden = pages.length === 0;
   pages.forEach((p, i) => {
     const div = document.createElement('div');
-    div.className = 'page-thumb';
-    div.innerHTML = `<span class="num">${i + 1}</span><button class="del">✕</button><img src="${p.url}" alt="">`;
+    const isPdf = p.blob.type === 'application/pdf';
+    div.className = 'page-thumb' + (isPdf ? ' pdf' : '');
+    const body = isPdf
+      ? `<span class="pdf-ico">📄</span>PDF`
+      : `<img src="${p.url}" alt="">`;
+    div.innerHTML = `<span class="num">${i + 1}</span><button class="del">✕</button>${body}`;
     div.querySelector('.del').onclick = () => {
       URL.revokeObjectURL(p.url);
       pages.splice(i, 1);
@@ -370,6 +385,8 @@ function startQuiz(data) {
 }
 
 function renderQuestion() {
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  $('speakBtn').classList.remove('active');
   const q = quiz.questions[current];
   const total = quiz.questions.length;
   $('progressBar').style.width = `${(current / total) * 100}%`;
@@ -426,6 +443,22 @@ function choose(i, area, q) {
   reveal(area, q, i);
 }
 
+// Read the current question + options aloud (Text-to-Speech).
+function speakCurrent() {
+  if (!('speechSynthesis' in window)) return banner('🔊 not supported on this device.');
+  const synth = window.speechSynthesis;
+  if (synth.speaking) { synth.cancel(); $('speakBtn').classList.remove('active'); return; }
+  const q = quiz.questions[current];
+  const text = `${q.question}. ${q.options.map((o, i) => `${i + 1}. ${o}`).join('. ')}`;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = SPEECH_LANG[lang] || 'en-IN';
+  u.rate = 0.95;
+  u.onend = () => $('speakBtn').classList.remove('active');
+  $('speakBtn').classList.add('active');
+  synth.speak(u);
+}
+$('speakBtn').onclick = speakCurrent;
+
 $('skipBtn').onclick = () => {
   const q = quiz.questions[current];
   answers.push({ q: q.question, chosen: null, correct: q.options[q.correctIndex], isRight: false });
@@ -446,7 +479,14 @@ function showResults() {
   $('scoreRing').style.setProperty('--p', `${pct}%`);
   $('scoreText').textContent = `${pct}%`;
   $('scoreHeadline').textContent = pct >= 80 ? t('excellent') : pct >= 50 ? t('good') : t('keep');
-  $('scoreDetail').textContent = `${t('scored')(score, total)}  ⏱️ ${fmtTime(elapsed)}`;
+  let detail = `${t('scored')(score, total)}  ⏱️ ${fmtTime(elapsed)}`;
+  if ($('negMark').checked) {
+    const wrongAttempted = answers.filter((a) => !a.isRight && a.chosen !== null).length;
+    const net = Math.max(0, score - 0.25 * wrongAttempted);
+    detail += `\n${t('net_score')(net.toFixed(2), total)}`;
+  }
+  $('scoreDetail').style.whiteSpace = 'pre-line';
+  $('scoreDetail').textContent = detail;
   $('wrongOnly').checked = false;
   renderReview(false);
   saveHistory({ topic: quiz.topic || 'Quiz', score, total, pct });
@@ -527,10 +567,33 @@ function loadHistory() {
 }
 function saveHistory(entry) {
   const hist = loadHistory();
-  hist.unshift({ ...entry, when: new Date().toLocaleString() });
+  const now = new Date();
+  hist.unshift({ ...entry, when: now.toLocaleString(), day: now.toISOString().slice(0, 10) });
   localStorage.setItem(HKEY, JSON.stringify(hist.slice(0, 50)));
 }
+
+function renderStats() {
+  const hist = loadHistory();
+  const box = $('statsBox');
+  if (!hist.length) { box.hidden = true; return; }
+  box.hidden = false;
+  const total = hist.length;
+  const avg = Math.round(hist.reduce((s, h) => s + h.pct, 0) / total);
+  const best = Math.max(...hist.map((h) => h.pct));
+  // streak: consecutive calendar days (ending today or yesterday) with a quiz
+  const days = new Set(hist.map((h) => h.day).filter(Boolean));
+  let streak = 0;
+  const d = new Date();
+  const iso = (x) => x.toISOString().slice(0, 10);
+  if (!days.has(iso(d))) d.setDate(d.getDate() - 1); // allow today not done yet
+  while (days.has(iso(d))) { streak++; d.setDate(d.getDate() - 1); }
+  $('stTotal').textContent = total;
+  $('stAvg').textContent = avg + '%';
+  $('stBest').textContent = best + '%';
+  $('stStreak').textContent = '🔥' + streak;
+}
 function renderHistory() {
+  renderStats();
   const hist = loadHistory();
   $('historyBox').hidden = hist.length === 0;
   const list = $('historyList');

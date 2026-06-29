@@ -63,7 +63,7 @@
         <button id="torchBtn" class="btn ghost" title="Flash" hidden>🔦</button>
         <label class="btn ghost file">
           🖼️ <span data-i18n="upload">Upload</span>
-          <input id="fileInput" type="file" accept="image/*" multiple hidden />
+          <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden />
         </label>
       </div>
 
@@ -91,8 +91,16 @@
           </select>
         </label>
       </div>
+      <label class="switch"><input type="checkbox" id="negMark" /> <span data-i18n="neg_mark">✍️ Exam mode — negative marking (−0.25 per wrong)</span></label>
 
       <button id="generateBtn" class="btn primary big" disabled><span data-i18n="generate">Generate quiz</span> ✨</button>
+
+      <div id="statsBox" class="stats" hidden>
+        <div class="stat"><b id="stTotal">0</b><small data-i18n="st_total">Quizzes</small></div>
+        <div class="stat"><b id="stAvg">0%</b><small data-i18n="st_avg">Avg score</small></div>
+        <div class="stat"><b id="stBest">0%</b><small data-i18n="st_best">Best</small></div>
+        <div class="stat"><b id="stStreak">🔥0</b><small data-i18n="st_streak">Day streak</small></div>
+      </div>
 
       <div id="historyBox" class="history" hidden>
         <div class="history-head">
@@ -121,6 +129,7 @@
         <span id="qCounter" class="pill"></span>
         <span id="liveScore" class="pill score"></span>
         <span id="timer" class="pill">⏱️ 0:00</span>
+        <button id="speakBtn" class="pill btn-pill" title="Read aloud">🔊</button>
       </div>
       <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
       <div id="questionArea"></div>
