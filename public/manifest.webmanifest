@@ -1,0 +1,18 @@
+{
+  "name": "AIQUIZ – Learn anything, test yourself",
+  "short_name": "AIQUIZ",
+  "description": "Scan books or notes, or type a topic, and get an instant exam-style quiz. Made for competitive exam aspirants. English, Telugu & Hindi.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef1f8",
+  "theme_color": "#4f46e5",
+  "categories": ["education", "productivity"],
+  "lang": "en",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

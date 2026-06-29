@@ -454,3 +454,10 @@ $('clearHistory').onclick = () => {
 applyTheme();
 applyLang();
 renderHistory();
+
+// Register service worker (makes the app installable / Play-Store ready).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
