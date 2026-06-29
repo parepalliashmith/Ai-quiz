@@ -83,8 +83,7 @@ function parseQuiz(text) {
 // files: array of { buffer, mimetype } (may be empty when a text topic is given)
 async function generateQuiz(files, opts) {
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=` +
-    GEMINI_API_KEY;
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
   const parts = [{ text: buildPrompt(opts) }];
   for (const f of files) {
     parts.push({
@@ -97,7 +96,7 @@ async function generateQuiz(files, opts) {
   };
   const r = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
     body: JSON.stringify(body),
   });
   const data = await r.json();
