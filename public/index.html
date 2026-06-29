@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>ScanQuiz · Crack any exam</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">📚</span> ScanQuiz</div>
+    <div class="tag">For competitive exam aspirants</div>
+  </header>
+
+  <main class="wrap">
+    <!-- STEP 1: Capture -->
+    <section id="capture" class="card">
+      <h1>Scan your study material</h1>
+      <p class="muted">Capture textbook pages, notes, or any topic. Add as many pages as you like — we'll build one exam-style quiz from all of them. Covers every subject.</p>
+
+      <div class="camera-box">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas" hidden></canvas>
+        <div id="camError" class="cam-error" hidden></div>
+      </div>
+
+      <!-- Captured pages -->
+      <div id="pageStrip" class="page-strip" hidden></div>
+
+      <div class="controls">
+        <button id="snapBtn" class="btn primary">📷 Add page</button>
+        <button id="flipBtn" class="btn ghost" title="Switch camera">🔄 Flip</button>
+        <label class="btn ghost file">
+          🖼️ Upload
+          <input id="fileInput" type="file" accept="image/*" multiple hidden />
+        </label>
+      </div>
+
+      <div class="divider"><span>or</span></div>
+      <label class="topic-field">Type a topic instead
+        <input id="topicInput" type="text" placeholder="e.g. Indian Polity – Fundamental Rights" />
+      </label>
+
+      <div class="options">
+        <label>Questions
+          <select id="count">
+            <option>5</option>
+            <option selected>10</option>
+            <option>15</option>
+            <option>20</option>
+          </select>
+        </label>
+        <label>Difficulty
+          <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <label>Language
+          <select id="language">
+            <option value="english" selected>English</option>
+            <option value="telugu">తెలుగు</option>
+            <option value="hindi">हिन्दी</option>
+          </select>
+        </label>
+      </div>
+
+      <button id="generateBtn" class="btn primary big" disabled>✨ Generate quiz</button>
+
+      <!-- Score history -->
+      <div id="historyBox" class="history" hidden>
+        <div class="history-head">
+          <h3>📊 Your score history</h3>
+          <button id="clearHistory" class="btn ghost small">🗑️ Clear all</button>
+        </div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Loading -->
+    <section id="loading" class="card center" hidden>
+      <div class="spinner"></div>
+      <h2>Reading your material…</h2>
+      <p class="muted">Understanding the topic and writing exam-style questions.</p>
+    </section>
+
+    <!-- STEP 3: Quiz -->
+    <section id="quiz" class="card" hidden>
+      <div class="quiz-head">
+        <h2 id="quizTopic">Quiz</h2>
+        <p id="quizSummary" class="muted"></p>
+      </div>
+      <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+      <div id="questionArea"></div>
+      <div class="quiz-foot">
+        <span id="qCounter" class="muted"></span>
+        <button id="nextBtn" class="btn primary" disabled>Next →</button>
+      </div>
+    </section>
+
+    <!-- STEP 4: Results -->
+    <section id="results" class="card center" hidden>
+      <div id="scoreRing" class="score-ring"><span id="scoreText">0%</span></div>
+      <h2 id="scoreHeadline">Nice work!</h2>
+      <p id="scoreDetail" class="muted"></p>
+      <div id="reviewList" class="review"></div>
+      <button id="restartBtn" class="btn primary big">📷 Scan another</button>
+    </section>
+  </main>
+
+  <p id="banner" class="banner" hidden></p>
+  <script src="app.js"></script>
+</body>
+</html>
