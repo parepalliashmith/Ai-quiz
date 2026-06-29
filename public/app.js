@@ -729,9 +729,16 @@ Mascot.init();
 updateMute();
 
 // Register service worker (makes the app installable / Play-Store ready).
+// Auto-reload once when a new version takes over, so updates show immediately.
 if ('serviceWorker' in navigator) {
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloaded) return;
+    reloaded = true;
+    window.location.reload();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then((reg) => reg.update()).catch(() => {});
   });
 }
 
