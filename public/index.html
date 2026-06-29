@@ -53,18 +53,22 @@
         <video id="video" autoplay playsinline muted></video>
         <div class="frame-guide" id="frameGuide"></div>
         <div id="flash" class="flash"></div>
-        <button id="shutterBtn" class="shutter" title="Capture" aria-label="Capture"></button>
         <canvas id="canvas" hidden></canvas>
         <div id="camError" class="cam-error" hidden></div>
       </div>
-      <p class="hint" data-i18n="cap_hint">📋 Place the page flat inside the frame and tap “Add page”.</p>
+
+      <!-- big centered capture button -->
+      <div class="capture-row">
+        <button id="flipBtn" class="round-btn" title="Switch camera" aria-label="Flip camera">🔄</button>
+        <button id="shutterBtn" class="shutter" title="Capture" aria-label="Capture"></button>
+        <button id="torchBtn" class="round-btn" title="Flash" aria-label="Flash" hidden>🔦</button>
+      </div>
+      <p class="hint" data-i18n="cap_hint">📋 Place the page in the frame and tap the camera button.</p>
 
       <div id="pageStrip" class="page-strip" hidden></div>
 
       <div class="controls">
-        <button id="snapBtn" class="btn primary"><span data-i18n="add_page">Add page</span></button>
-        <button id="flipBtn" class="btn ghost" title="Switch camera">🔄</button>
-        <button id="torchBtn" class="btn ghost" title="Flash" hidden>🔦</button>
+        <button id="snapBtn" class="btn primary"><span data-i18n="add_page">＋ Add page</span></button>
         <label class="btn ghost file">
           🖼️ <span data-i18n="upload">Upload</span>
           <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden />
