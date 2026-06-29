@@ -174,17 +174,22 @@ app.post('/api/quiz', upload.array('images', 10), async (req, res) => {
     return res.status(400).json({ error: 'Capture at least one page, or type a topic.' });
   }
   try {
-    const quiz = await generateQuiz(files, {
+    const baseOpts = {
       count: req.body.count,
       difficulty: req.body.difficulty,
       language: req.body.language,
       topic,
-      mode,
-    });
+    };
+    let quiz = await generateQuiz(files, { ...baseOpts, mode });
+    // Study mode but the photo has no readable text (e.g. a room/scene)?
+    // Auto-switch to observation questions so any picture still works.
+    if (quiz.error === 'no_content' && mode === 'study' && files.length) {
+      quiz = await generateQuiz(files, { ...baseOpts, mode: 'observe' });
+    }
     if (quiz.error === 'no_content') {
       return res
         .status(422)
-        .json({ error: 'Could not find readable study content — try clearer, closer photos.' });
+        .json({ error: 'Could not read the photo — try a clearer, closer, well-lit picture.' });
     }
     if (!Array.isArray(quiz.questions) || !quiz.questions.length) {
       return res.status(422).json({ error: 'No questions could be generated. Try again.' });
