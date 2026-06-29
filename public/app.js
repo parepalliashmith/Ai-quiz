@@ -44,6 +44,7 @@ const I18N = {
     chips: ['General Knowledge', 'Indian Polity', 'History', 'Geography', 'General Science', 'Current Affairs', 'Mathematics', 'Reasoning'],
     loading_msgs: ['Reading your material…', 'Finding the key concepts…', 'Writing exam-style questions…', 'Almost ready…'],
     neg_mark: '✍️ Exam mode — negative marking (−0.25 per wrong)',
+    quiz_lang: 'Quiz language',
     st_total: 'Quizzes', st_avg: 'Avg score', st_best: 'Best', st_streak: 'Day streak',
     net_score: (n, t) => `Net score: ${n} / ${t} (with negative marking)`,
   },
@@ -87,6 +88,7 @@ const I18N = {
     chips: ['జనరల్ నాలెడ్జ్', 'ఇండియన్ పాలిటీ', 'చరిత్ర', 'భూగోళశాస్త్రం', 'జనరల్ సైన్స్', 'కరెంట్ అఫైర్స్', 'గణితం', 'రీజనింగ్'],
     loading_msgs: ['మీ మెటీరియల్ చదువుతోంది…', 'ముఖ్య అంశాలు కనుగొంటోంది…', 'పరీక్ష-శైలి ప్రశ్నలు రాస్తోంది…', 'దాదాపు సిద్ధం…'],
     neg_mark: '✍️ ఎగ్జామ్ మోడ్ — నెగటివ్ మార్కింగ్ (తప్పుకు −0.25)',
+    quiz_lang: 'క్విజ్ భాష',
     st_total: 'క్విజ్‌లు', st_avg: 'సగటు స్కోర్', st_best: 'అత్యుత్తమం', st_streak: 'రోజుల స్ట్రీక్',
     net_score: (n, t) => `నెట్ స్కోర్: ${n} / ${t} (నెగటివ్ మార్కింగ్‌తో)`,
   },
@@ -130,6 +132,7 @@ const I18N = {
     chips: ['सामान्य ज्ञान', 'भारतीय राजव्यवस्था', 'इतिहास', 'भूगोल', 'सामान्य विज्ञान', 'करंट अफेयर्स', 'गणित', 'रीज़निंग'],
     loading_msgs: ['आपकी सामग्री पढ़ी जा रही है…', 'मुख्य अवधारणाएं ढूंढी जा रही हैं…', 'परीक्षा-शैली के प्रश्न लिखे जा रहे हैं…', 'लगभग तैयार…'],
     neg_mark: '✍️ एग्ज़ाम मोड — नेगेटिव मार्किंग (गलत पर −0.25)',
+    quiz_lang: 'क्विज़ भाषा',
     st_total: 'क्विज़', st_avg: 'औसत स्कोर', st_best: 'सर्वश्रेष्ठ', st_streak: 'दिन स्ट्रीक',
     net_score: (n, t) => `नेट स्कोर: ${n} / ${t} (नेगेटिव मार्किंग के साथ)`,
   },
@@ -152,6 +155,8 @@ function applyLang() {
   document.documentElement.lang =
     lang === 'telugu' ? 'te' : lang === 'hindi' ? 'hi' : 'en';
   $('langSwitch').value = lang;
+  const ql = $('quizLang');
+  if (ql) ql.value = lang; // default quiz language follows the app language (user can override)
   renderChips();
 }
 
@@ -342,7 +347,7 @@ $('generateBtn').onclick = async () => {
   pages.forEach((p, i) => fd.append('images', p.blob, `page${i + 1}.jpg`));
   fd.append('count', $('count').value);
   fd.append('difficulty', $('difficulty').value);
-  fd.append('language', lang);
+  fd.append('language', $('quizLang').value); // quiz output language (independent of app UI)
   if (topic) fd.append('topic', topic);
   try {
     const r = await fetch('/api/quiz', { method: 'POST', body: fd });
@@ -452,7 +457,7 @@ function speakCurrent() {
   const q = quiz.questions[current];
   const text = `${q.question}. ${q.options.map((o, i) => `${i + 1}. ${o}`).join('. ')}`;
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = SPEECH_LANG[lang] || 'en-IN';
+  u.lang = SPEECH_LANG[$('quizLang').value] || SPEECH_LANG[lang] || 'en-IN';
   u.rate = 0.95;
   u.onend = () => $('speakBtn').classList.remove('active');
   $('speakBtn').classList.add('active');
