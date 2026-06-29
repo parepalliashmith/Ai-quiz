@@ -144,10 +144,14 @@ async function generateWithModel(model, files, opts) {
   const data = await r.json();
   if (!r.ok) {
     const msg = data?.error?.message || `Gemini failed (${r.status})`;
-    if (r.status === 429 || /quota|rate limit|resource has been exhausted/i.test(msg)) {
+    // Quota (429) or model overloaded/high-demand (503) → try the next model.
+    if (
+      r.status === 429 ||
+      r.status === 503 ||
+      /quota|rate limit|resource has been exhausted|high demand|overloaded|unavailable/i.test(msg)
+    ) {
       const e = new Error(
-        'Free AI limit reached for now. Please try again in a minute — or a little later today. ' +
-          '(The free Gemini quota resets automatically.)'
+        'The free AI is busy or its daily limit was reached. Please try again in a minute.'
       );
       e.code = 'AI_LIMIT';
       throw e;
