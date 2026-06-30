@@ -43,6 +43,7 @@ html[data-theme="dark"] {
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
+  background: var(--bg);
   /* stop browser pull-to-refresh / overscroll search when dragging from the top */
   overscroll-behavior: none;
 }
@@ -70,7 +71,7 @@ h1, h2, h3, .brand { font-family: var(--font-display); letter-spacing: -0.02em; 
 .topbar {
   flex: 0 0 auto;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; z-index: 5;
+  padding: calc(14px + env(safe-area-inset-top)) 20px 14px; z-index: 5;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
   backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
   border-bottom: 1px solid var(--line);
@@ -96,7 +97,8 @@ h1, h2, h3, .brand { font-family: var(--font-display); letter-spacing: -0.02em; 
 .icon-btn:active { transform: scale(.92); }
 
 .wrap {
-  flex: 1 1 auto; width: 100%; max-width: 640px; margin: 0 auto; padding: 18px 16px 70px;
+  flex: 1 1 auto; width: 100%; max-width: 640px; margin: 0 auto;
+  padding: 18px 16px calc(48px + env(safe-area-inset-bottom));
   overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
 }
 
@@ -406,7 +408,7 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 }
 
 .banner {
-  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%);
   background: #1f2937; color: #fff; padding: 13px 20px; border-radius: 14px;
   font-size: 14px; max-width: 92%; box-shadow: 0 12px 34px rgba(0,0,0,.4); z-index: 20;
   animation: rise .25s ease both;
