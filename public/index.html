@@ -18,7 +18,10 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">🧠</span> AIQUIZ</div>
+    <div class="top-left">
+      <button id="navBack" class="icon-btn" aria-label="Back" title="Back" hidden>←</button>
+      <div class="brand"><span class="logo">🧠</span> AIQUIZ</div>
+    </div>
     <div class="top-actions">
       <select id="langSwitch" class="lang-switch" title="Language">
         <option value="english">EN</option>
@@ -173,7 +176,6 @@
         <div id="tutorBubble" class="tutor-bubble" hidden></div>
       </div>
 
-      <button id="quizBackBtn" class="back-btn" title="Exit quiz">← <span data-i18n="exit">Exit</span></button>
       <div class="quiz-head">
         <h2 id="quizTopic">Quiz</h2>
         <p id="quizSummary" class="muted"></p>

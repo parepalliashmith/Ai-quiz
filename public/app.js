@@ -310,6 +310,9 @@ const sections = ['onboarding', 'capture', 'loading', 'quiz', 'results'];
 let loadingTimer = null;
 function show(name) {
   sections.forEach((s) => ($(s).hidden = s !== name));
+  // Header back button: hidden on the home/onboarding screens, shown elsewhere.
+  const nb = $('navBack');
+  if (nb) nb.hidden = name === 'onboarding' || name === 'capture';
   const wrap = document.querySelector('.wrap');
   if (wrap) wrap.scrollTo({ top: 0, behavior: 'smooth' });
   clearInterval(loadingTimer);
@@ -342,9 +345,8 @@ $('startBtn').onclick = () => {
   localStorage.setItem('aiquiz_onboarded', 'yes');
   goHome();
 };
-// Tap the logo to go home from anywhere.
-const brandEl = document.querySelector('.brand');
-if (brandEl) { brandEl.style.cursor = 'pointer'; brandEl.onclick = goHome; }
+// Header back button → return home from any screen.
+$('navBack').onclick = goHome;
 
 // ---------- Camera ----------
 const video = $('video');
@@ -686,13 +688,6 @@ $('nextBtn').onclick = () => {
   else renderQuestion();
 };
 
-// Exit the quiz back to the capture screen at any time.
-$('quizBackBtn').onclick = () => {
-  Mascot.stop();
-  clearInterval(timerId);
-  show('capture');
-  startCamera();
-};
 
 function showResults() {
   clearInterval(timerId);

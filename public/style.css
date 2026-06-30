@@ -75,6 +75,7 @@ h1, h2, h3, .brand { font-family: var(--font-display); letter-spacing: -0.02em; 
   backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
   border-bottom: 1px solid var(--line);
 }
+.top-left { display: flex; align-items: center; gap: 10px; }
 .brand {
   font-weight: 800; font-size: 22px;
   background: linear-gradient(120deg, #6a5cff, #a779ff 45%, #22d3ee);
