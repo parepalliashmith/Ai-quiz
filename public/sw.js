@@ -1,6 +1,6 @@
 // AIQUIZ service worker — network-first so users always get the latest version
 // when online, with an offline cache fallback. Bump CACHE to force an update.
-const CACHE = 'aiquiz-v3';
+const CACHE = 'aiquiz-v4';
 const SHELL = ['/', '/index.html', '/style.css', '/app.js', '/manifest.webmanifest',
   '/icons/icon-192.png', '/icons/icon-512.png', '/icons/maskable-512.png'];
 
