@@ -332,10 +332,19 @@ function banner(msg) {
   banner._t = setTimeout(() => (b.hidden = true), 4500);
 }
 
-$('startBtn').onclick = () => {
+function goHome() {
+  Mascot.stop();
+  clearInterval(timerId);
   show('capture');
   startCamera();
+}
+$('startBtn').onclick = () => {
+  localStorage.setItem('aiquiz_onboarded', 'yes');
+  goHome();
 };
+// Tap the logo to go home from anywhere.
+const brandEl = document.querySelector('.brand');
+if (brandEl) { brandEl.style.cursor = 'pointer'; brandEl.onclick = goHome; }
 
 // ---------- Camera ----------
 const video = $('video');
@@ -837,6 +846,25 @@ applyLang();
 renderHistory();
 Mascot.init();
 updateMute();
+
+// Remember last-used settings so users don't reset them every time.
+['count', 'difficulty', 'mode', 'quizLang'].forEach((id) => {
+  const el = $(id);
+  if (!el) return;
+  const saved = localStorage.getItem('aiquiz_set_' + id);
+  if (saved !== null) el.value = saved;
+  el.addEventListener('change', () => localStorage.setItem('aiquiz_set_' + id, el.value));
+});
+$('negMark').checked = localStorage.getItem('aiquiz_neg') === '1';
+$('negMark').addEventListener('change', () =>
+  localStorage.setItem('aiquiz_neg', $('negMark').checked ? '1' : '0')
+);
+
+// Show onboarding only the first time; returning users go straight to the camera.
+if (localStorage.getItem('aiquiz_onboarded') === 'yes') {
+  show('capture');
+  startCamera();
+}
 
 // Register service worker (makes the app installable / Play-Store ready).
 // Auto-reload once when a new version takes over, so updates show immediately.
