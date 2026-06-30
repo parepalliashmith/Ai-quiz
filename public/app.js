@@ -304,6 +304,11 @@ let theme = localStorage.getItem('aiquiz_theme') || 'light';
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
   $('themeToggle').textContent = theme === 'light' ? '🌙' : '☀️';
+  // Tint the phone's status/navigation bars to match the app (seamless, native feel).
+  const color = theme === 'dark' ? '#07081a' : '#e7ebfa';
+  let m = document.querySelector('meta[name="theme-color"]');
+  if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+  m.setAttribute('content', color);
 }
 $('themeToggle').onclick = () => {
   theme = theme === 'light' ? 'dark' : 'light';
