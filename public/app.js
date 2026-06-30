@@ -29,7 +29,7 @@ const I18N = {
     skip: 'Skip', next: 'Next', see_results: 'See results',
     score: 'Score', question_of: (a, b) => `Question ${a} of ${b}`,
     correct: 'Correct!', not_quite: 'Not quite.', skipped: 'Skipped.',
-    retry: 'Retry', share: 'Share', wrong_only: 'Show wrong answers only',
+    retry: 'Retry', share: 'Share', new_quiz: 'New quiz', wrong_only: 'Show wrong answers only',
     scan_another: 'Scan another',
     your_answer: 'Your answer', correct_ans: 'Correct', no_answer: '(skipped)',
     excellent: '🎉 Excellent!', good: '👍 Good effort!', keep: '📖 Keep studying!',
@@ -79,7 +79,7 @@ const I18N = {
     skip: 'దాటవేయి', next: 'తదుపరి', see_results: 'ఫలితాలు చూడు',
     score: 'స్కోర్', question_of: (a, b) => `ప్రశ్న ${a} / ${b}`,
     correct: 'సరైనది!', not_quite: 'సరికాదు.', skipped: 'దాటవేశారు.',
-    retry: 'మళ్లీ', share: 'షేర్', wrong_only: 'తప్పు సమాధానాలు మాత్రమే చూపు',
+    retry: 'మళ్లీ', share: 'షేర్', new_quiz: 'కొత్త క్విజ్', wrong_only: 'తప్పు సమాధానాలు మాత్రమే చూపు',
     scan_another: 'మరొకటి స్కాన్ చేయి',
     your_answer: 'మీ సమాధానం', correct_ans: 'సరైనది', no_answer: '(దాటవేశారు)',
     excellent: '🎉 అద్భుతం!', good: '👍 బాగుంది!', keep: '📖 ఇంకా చదవండి!',
@@ -129,7 +129,7 @@ const I18N = {
     skip: 'छोड़ें', next: 'अगला', see_results: 'परिणाम देखें',
     score: 'स्कोर', question_of: (a, b) => `प्रश्न ${a} / ${b}`,
     correct: 'सही!', not_quite: 'सही नहीं।', skipped: 'छोड़ा गया।',
-    retry: 'फिर से', share: 'शेयर', wrong_only: 'केवल गलत उत्तर दिखाएं',
+    retry: 'फिर से', share: 'शेयर', new_quiz: 'नया क्विज़', wrong_only: 'केवल गलत उत्तर दिखाएं',
     scan_another: 'दूसरा स्कैन करें',
     your_answer: 'आपका उत्तर', correct_ans: 'सही', no_answer: '(छोड़ा गया)',
     excellent: '🎉 शानदार!', good: '👍 अच्छा प्रयास!', keep: '📖 पढ़ते रहें!',
@@ -564,7 +564,7 @@ $('topicInput').onkeydown = (e) => {
 };
 
 // ---------- Generate ----------
-$('generateBtn').onclick = async () => {
+async function runGenerate() {
   const topic = $('topicInput').value.trim();
   if (pages.length === 0 && !topic) return banner(t('need_input'));
   show('loading');
@@ -584,7 +584,10 @@ $('generateBtn').onclick = async () => {
     banner(e.message);
     show('capture');
   }
-};
+}
+$('generateBtn').onclick = runGenerate;
+// Regenerate a fresh quiz from the same material/settings (results screen).
+$('regenBtn').onclick = () => { Mascot.stop(); runGenerate(); };
 
 // ---------- Quiz ----------
 let quiz = null, current = 0, score = 0, answers = [];
@@ -895,6 +898,49 @@ $('clearHistory').onclick = async () => {
   renderHistory();
   banner(t('cleared'));
 };
+
+// ---------- Custom pull-to-refresh (app-branded, only on the home screen) ----------
+(function () {
+  const wrap = document.querySelector('.wrap');
+  const ptr = $('ptr');
+  if (!wrap || !ptr) return;
+  let startY = null, pull = 0, ready = false;
+  const reset = () => {
+    ptr.style.opacity = 0;
+    ptr.style.transform = 'translateY(0)';
+    ptr.classList.remove('ready', 'spinning');
+  };
+  const atHome = () => !$('capture').hidden || !$('onboarding').hidden;
+  wrap.addEventListener('touchstart', (e) => {
+    startY = wrap.scrollTop <= 0 && atHome() ? e.touches[0].clientY : null;
+    pull = 0; ready = false;
+  }, { passive: true });
+  wrap.addEventListener('touchmove', (e) => {
+    if (startY === null) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 0 && wrap.scrollTop <= 0) {
+      pull = Math.min(dy * 0.5, 90);
+      ready = pull >= 56;
+      ptr.style.opacity = Math.min(pull / 56, 1);
+      ptr.style.transform = `translateY(${pull}px) rotate(${pull * 4}deg)`;
+      ptr.classList.toggle('ready', ready);
+      if (dy > 6 && e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
+  const onEnd = () => {
+    if (startY === null) return;
+    if (ready) {
+      if (navigator.vibrate) navigator.vibrate(20);
+      ptr.classList.add('spinning');
+      ptr.style.opacity = 1;
+      ptr.style.transform = 'translateY(56px)';
+      setTimeout(() => location.reload(), 420);
+    } else reset();
+    startY = null;
+  };
+  wrap.addEventListener('touchend', onEnd);
+  wrap.addEventListener('touchcancel', onEnd);
+})();
 
 // ---------- Init ----------
 applyTheme();

@@ -100,6 +100,20 @@ h1, h2, h3, .brand { font-family: var(--font-display); letter-spacing: -0.02em; 
   overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
 }
 
+/* custom pull-to-refresh indicator (app-branded, not the browser's) */
+.ptr {
+  position: fixed; left: 50%; top: 64px; z-index: 6; opacity: 0; pointer-events: none;
+  width: 42px; height: 42px; margin-left: -21px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--line);
+  box-shadow: 0 8px 22px rgba(0,0,0,.25);
+  display: flex; align-items: center; justify-content: center;
+  transform: translateY(0);
+}
+.ptr .ptr-icon { font-size: 20px; color: var(--primary); line-height: 1; }
+.ptr.ready { background: linear-gradient(135deg, #6a5cff, #22d3ee); }
+.ptr.ready .ptr-icon { color: #fff; }
+.ptr.spinning .ptr-icon { animation: spin .7s linear infinite; }
+
 .card {
   position: relative;
   background: var(--card); border: 1px solid var(--line);
