@@ -362,11 +362,15 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .history { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
 .history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .history-head h3 { font-size: 16px; }
+.hist-hint { font-size: 12px; margin: -2px 0 10px; }
 .hist-item {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 12px 14px; margin-bottom: 8px; border-radius: 12px;
   background: var(--card2); border: 1px solid var(--line);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: transform .15s ease, background .15s ease;
 }
+.hist-item.pressing { transform: scale(.97); background: var(--red-bg); border-color: var(--red); }
 .hist-item .h-left { min-width: 0; }
 .hist-item .h-topic { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hist-item .h-meta { color: var(--muted); font-size: 12px; }

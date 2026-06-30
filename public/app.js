@@ -21,6 +21,8 @@ const I18N = {
     generate: 'Generate quiz',
     history_title: '📊 Your score history', clear_all: 'Clear all',
     clear_confirm: 'Delete all saved scores?', cleared: 'Score history cleared.',
+    hist_hint: 'Long-press an item to delete just that one.',
+    del_one_confirm: 'Delete this score?', deleted_one: 'Deleted.',
     loading_title: 'Reading your material…',
     loading_sub: 'Understanding the topic and writing questions.',
     loading_note: 'First time may take up to a minute — please wait.',
@@ -69,6 +71,8 @@ const I18N = {
     generate: 'క్విజ్ తయారు చేయి',
     history_title: '📊 మీ స్కోర్ చరిత్ర', clear_all: 'అన్నీ తొలగించు',
     clear_confirm: 'సేవ్ చేసిన అన్ని స్కోర్‌లు తొలగించాలా?', cleared: 'స్కోర్ చరిత్ర తొలగించబడింది.',
+    hist_hint: 'ఒక దానిని మాత్రమే తొలగించడానికి దానిపై ఎక్కువసేపు నొక్కండి.',
+    del_one_confirm: 'ఈ స్కోర్ తొలగించాలా?', deleted_one: 'తొలగించబడింది.',
     loading_title: 'మీ మెటీరియల్ చదువుతోంది…',
     loading_sub: 'టాపిక్‌ను అర్థం చేసుకుని ప్రశ్నలు రాస్తోంది.',
     loading_note: 'మొదటిసారి ఒక నిమిషం వరకు పట్టవచ్చు — దయచేసి వేచి ఉండండి.',
@@ -117,6 +121,8 @@ const I18N = {
     generate: 'क्विज़ बनाएं',
     history_title: '📊 आपका स्कोर इतिहास', clear_all: 'सब हटाएं',
     clear_confirm: 'सभी सहेजे गए स्कोर हटाएं?', cleared: 'स्कोर इतिहास हटा दिया गया।',
+    hist_hint: 'केवल एक हटाने के लिए उस पर देर तक दबाएं।',
+    del_one_confirm: 'यह स्कोर हटाएं?', deleted_one: 'हटा दिया गया।',
     loading_title: 'आपकी सामग्री पढ़ी जा रही है…',
     loading_sub: 'टॉपिक समझकर प्रश्न लिखे जा रहे हैं।',
     loading_note: 'पहली बार एक मिनट तक लग सकता है — कृपया प्रतीक्षा करें।',
@@ -818,15 +824,51 @@ function renderHistory() {
   $('historyBox').hidden = hist.length === 0;
   const list = $('historyList');
   list.innerHTML = '';
-  hist.forEach((h) => {
+  hist.forEach((h, idx) => {
     const cls = h.pct >= 80 ? 'good' : h.pct >= 50 ? 'mid' : 'low';
     const item = document.createElement('div');
     item.className = 'hist-item';
     item.innerHTML =
       `<div class="h-left"><div class="h-topic">${h.topic}</div><div class="h-meta">${h.when}</div></div>` +
       `<div class="h-score ${cls}">${h.pct}% <span class="h-meta">(${h.score}/${h.total})</span></div>`;
+    attachLongPress(item, () => deleteHistoryItem(idx));
     list.appendChild(item);
   });
+}
+
+// Long-press (or long-click) to delete a single history entry.
+function attachLongPress(el, cb, ms = 550) {
+  let timer = null, sx = 0, sy = 0;
+  const start = (e) => {
+    const p = e.touches ? e.touches[0] : e;
+    sx = p.clientX; sy = p.clientY;
+    el.classList.add('pressing');
+    timer = setTimeout(() => { timer = null; el.classList.remove('pressing'); cb(); }, ms);
+  };
+  const move = (e) => {
+    if (!timer) return;
+    const p = e.touches ? e.touches[0] : e;
+    if (Math.hypot(p.clientX - sx, p.clientY - sy) > 12) cancel();
+  };
+  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } el.classList.remove('pressing'); };
+  el.addEventListener('touchstart', start, { passive: true });
+  el.addEventListener('touchmove', move, { passive: true });
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('touchcancel', cancel);
+  el.addEventListener('mousedown', start);
+  el.addEventListener('mousemove', move);
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+}
+
+function deleteHistoryItem(idx) {
+  if (navigator.vibrate) navigator.vibrate(30);
+  if (!confirm(t('del_one_confirm'))) return;
+  const hist = loadHistory();
+  hist.splice(idx, 1);
+  localStorage.setItem(HKEY, JSON.stringify(hist));
+  renderHistory();
+  banner(t('deleted_one'));
 }
 $('clearHistory').onclick = () => {
   if (!confirm(t('clear_confirm'))) return;
