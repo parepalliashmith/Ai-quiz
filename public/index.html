@@ -211,6 +211,17 @@
     </section>
   </main>
 
+  <!-- custom confirm dialog (replaces the browser's native popup) -->
+  <div id="confirmModal" class="modal" hidden>
+    <div class="modal-card confirm-card">
+      <p id="confirmMsg" class="confirm-msg"></p>
+      <div class="modal-actions">
+        <button id="confirmCancel" class="btn ghost"><span data-i18n="cancel">Cancel</span></button>
+        <button id="confirmOk" class="btn primary"><span data-i18n="ok">Delete</span></button>
+      </div>
+    </div>
+  </div>
+
   <!-- full-size photo preview -->
   <div id="previewModal" class="modal" hidden>
     <div class="modal-card">

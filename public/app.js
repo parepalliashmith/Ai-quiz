@@ -48,7 +48,7 @@ const I18N = {
     neg_mark: '✍️ Exam mode — negative marking (−0.25 per wrong)',
     quiz_lang: 'Quiz language',
     mode: 'Quiz type', mode_study: '📚 Study material', mode_observe: '🔍 Observe a picture',
-    exit: 'Exit', remove: 'Remove', close: 'Close',
+    exit: 'Exit', remove: 'Remove', close: 'Close', cancel: 'Cancel', ok: 'Delete',
     blurry: '📷 Photo looks blurry — tap it to check, or retake for a better quiz.',
     no_voice: '🔊 Voice for this language is not installed on your device — narration may be silent.',
     st_total: 'Quizzes', st_avg: 'Avg score', st_best: 'Best', st_streak: 'Day streak',
@@ -98,7 +98,7 @@ const I18N = {
     neg_mark: '✍️ ఎగ్జామ్ మోడ్ — నెగటివ్ మార్కింగ్ (తప్పుకు −0.25)',
     quiz_lang: 'క్విజ్ భాష',
     mode: 'క్విజ్ రకం', mode_study: '📚 స్టడీ మెటీరియల్', mode_observe: '🔍 ఫోటోను గమనించు',
-    exit: 'నిష్క్రమించు', remove: 'తొలగించు', close: 'మూసివేయి',
+    exit: 'నిష్క్రమించు', remove: 'తొలగించు', close: 'మూసివేయి', cancel: 'రద్దు', ok: 'తొలగించు',
     blurry: '📷 ఫోటో మసకగా ఉంది — చూడటానికి నొక్కండి, లేదా మంచి క్విజ్ కోసం మళ్లీ తీయండి.',
     no_voice: '🔊 ఈ భాష వాయిస్ మీ ఫోన్‌లో లేదు — నేరేషన్ వినిపించకపోవచ్చు.',
     st_total: 'క్విజ్‌లు', st_avg: 'సగటు స్కోర్', st_best: 'అత్యుత్తమం', st_streak: 'రోజుల స్ట్రీక్',
@@ -148,7 +148,7 @@ const I18N = {
     neg_mark: '✍️ एग्ज़ाम मोड — नेगेटिव मार्किंग (गलत पर −0.25)',
     quiz_lang: 'क्विज़ भाषा',
     mode: 'क्विज़ प्रकार', mode_study: '📚 अध्ययन सामग्री', mode_observe: '🔍 तस्वीर देखें',
-    exit: 'बाहर', remove: 'हटाएं', close: 'बंद करें',
+    exit: 'बाहर', remove: 'हटाएं', close: 'बंद करें', cancel: 'रद्द करें', ok: 'हटाएं',
     blurry: '📷 तस्वीर धुंधली लग रही है — देखने के लिए टैप करें, या बेहतर क्विज़ के लिए फिर से लें.',
     no_voice: '🔊 इस भाषा की आवाज़ आपके फ़ोन में नहीं है — नैरेशन शायद न सुनाई दे.',
     st_total: 'क्विज़', st_avg: 'औसत स्कोर', st_best: 'सर्वश्रेष्ठ', st_streak: 'दिन स्ट्रीक',
@@ -339,6 +339,25 @@ function banner(msg) {
   b.hidden = false;
   clearTimeout(banner._t);
   banner._t = setTimeout(() => (b.hidden = true), 4500);
+}
+
+// Custom in-app confirm dialog (replaces the browser's native popup).
+function askConfirm(msg) {
+  return new Promise((resolve) => {
+    const m = $('confirmModal');
+    $('confirmMsg').textContent = msg;
+    m.hidden = false;
+    const done = (val) => {
+      m.hidden = true;
+      $('confirmOk').onclick = null;
+      $('confirmCancel').onclick = null;
+      m.onclick = null;
+      resolve(val);
+    };
+    $('confirmOk').onclick = () => done(true);
+    $('confirmCancel').onclick = () => done(false);
+    m.onclick = (e) => { if (e.target.id === 'confirmModal') done(false); };
+  });
 }
 
 function goHome() {
@@ -861,17 +880,17 @@ function attachLongPress(el, cb, ms = 550) {
   el.addEventListener('mouseleave', cancel);
 }
 
-function deleteHistoryItem(idx) {
+async function deleteHistoryItem(idx) {
   if (navigator.vibrate) navigator.vibrate(30);
-  if (!confirm(t('del_one_confirm'))) return;
+  if (!(await askConfirm(t('del_one_confirm')))) return;
   const hist = loadHistory();
   hist.splice(idx, 1);
   localStorage.setItem(HKEY, JSON.stringify(hist));
   renderHistory();
   banner(t('deleted_one'));
 }
-$('clearHistory').onclick = () => {
-  if (!confirm(t('clear_confirm'))) return;
+$('clearHistory').onclick = async () => {
+  if (!(await askConfirm(t('clear_confirm')))) return;
   localStorage.removeItem(HKEY);
   renderHistory();
   banner(t('cleared'));
