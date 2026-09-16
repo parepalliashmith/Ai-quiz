@@ -326,6 +326,7 @@ function show(name) {
   if (nb) nb.hidden = name === 'onboarding' || name === 'capture';
   const wrap = document.querySelector('.wrap');
   if (wrap) wrap.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => initAds(name), 150); // load ads once the section is visible
   clearInterval(loadingTimer);
   if (name === 'loading') {
     const msgs = t('loading_msgs') || [t('loading_title')];
@@ -338,6 +339,21 @@ function show(name) {
     }, 2500);
   }
 }
+// Render any AdSense unit inside a now-visible section, once each.
+// Skips placeholder slots so nothing errors until real slot IDs are set.
+function initAds(sectionName) {
+  const sec = $(sectionName);
+  if (!sec) return;
+  sec.querySelectorAll('ins.adsbygoogle').forEach((ins) => {
+    const slot = ins.getAttribute('data-ad-slot') || '';
+    if (ins.dataset.adDone || slot.startsWith('REPLACE')) return;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      ins.dataset.adDone = '1';
+    } catch (e) { /* adblock or not ready */ }
+  });
+}
+
 function banner(msg) {
   const b = $('banner');
   b.textContent = msg;

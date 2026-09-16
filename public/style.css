@@ -407,6 +407,13 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
   to { transform: translateY(105vh) rotate(720deg); opacity: .2; }
 }
 
+.ad-slot { margin: 22px 0 4px; min-height: 0; text-align: center; }
+.ad-slot .ad-label {
+  display: block; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); opacity: .6; margin-bottom: 5px;
+}
+.ad-slot ins { background: transparent; }
+
 .banner {
   position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); transform: translateX(-50%);
   background: #1f2937; color: #fff; padding: 13px 20px; border-radius: 14px;
