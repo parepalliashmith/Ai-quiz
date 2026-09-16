@@ -413,6 +413,14 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
   color: var(--muted); opacity: .6; margin-bottom: 5px;
 }
 .ad-slot ins { background: transparent; }
+.home-info { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); text-align: left; }
+.home-info h2 { font-size: 19px; margin-bottom: 8px; }
+.home-info h3 { font-size: 15.5px; margin: 16px 0 4px; color: var(--primary); }
+.home-info p { font-size: 14px; color: var(--muted); line-height: 1.65; margin-bottom: 6px; }
+.home-info b { color: var(--text); }
+.home-info-links { margin-top: 14px; }
+.home-info-links a { color: var(--primary); }
+
 .site-foot { text-align: center; margin-top: 22px; font-size: 12.5px; color: var(--muted); }
 .site-foot a { color: var(--muted); text-decoration: underline; }
 
