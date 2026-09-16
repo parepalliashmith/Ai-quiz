@@ -215,10 +215,10 @@ app.post('/api/quiz', upload.array('images', 10), async (req, res) => {
 
 app.listen(PORT, () => console.log(`Scan-Quiz running on http://localhost:${PORT}`));
 
-// Optional keep-awake: pings itself so Render's free instance doesn't sleep
-// (avoids the ~50s cold start). OFF by default — set KEEP_AWAKE=true on Render
-// to enable it (recommended during the AdSense review). Uses free instance hours.
-if (process.env.KEEP_AWAKE === 'true') {
+// Keep-awake: pings itself so Render's free instance doesn't sleep (avoids the
+// ~50s cold start). ON by default; set KEEP_AWAKE=false on Render to disable it
+// (e.g. to conserve free instance hours across your other Render services).
+if (process.env.KEEP_AWAKE !== 'false') {
   const SELF = (process.env.SELF_URL || 'https://ai-quiz-jfzn.onrender.com').replace(/\/$/, '');
   setInterval(() => { fetch(`${SELF}/api/health`).catch(() => {}); }, 14 * 60 * 1000);
   console.log('Keep-awake enabled: self-pinging every 14 min.');
