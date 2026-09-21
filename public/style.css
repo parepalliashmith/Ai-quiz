@@ -413,6 +413,15 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
   color: var(--muted); opacity: .6; margin-bottom: 5px;
 }
 .ad-slot ins { background: transparent; }
+.sample-quiz { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); text-align: left; }
+.sample-quiz h2 { font-size: 19px; margin-bottom: 4px; }
+.sq-card { margin-top: 12px; padding: 16px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); }
+.sq-q { font-weight: 700; font-size: 15px; margin-bottom: 12px; }
+.sq-opt { padding: 10px 13px; border-radius: 10px; border: 1px solid var(--line); margin-bottom: 8px; font-size: 14px; color: var(--muted); }
+.sq-opt.correct { border-color: var(--green); background: var(--green-bg); color: var(--text); font-weight: 600; }
+.sq-exp { margin-top: 8px; font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.sq-exp b { color: var(--primary); }
+
 .home-info { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); text-align: left; }
 .home-info h2 { font-size: 19px; margin-bottom: 8px; }
 .home-info h3 { font-size: 15.5px; margin: 16px 0 4px; color: var(--primary); }
