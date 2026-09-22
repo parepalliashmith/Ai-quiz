@@ -82,7 +82,7 @@ a { color: var(--primary); }
 /* ===== Dashboard home ===== */
 .dash { display: grid; grid-template-columns: 1fr 330px; gap: 20px; align-items: start; }
 .dash-main { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
-.dash-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 0; }
+.dash-right { display: flex; flex-direction: column; gap: 16px; }
 
 .welcome { background: var(--welcome); border-radius: 18px; padding: 26px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .welcome-text h1 { font-size: 28px; margin-bottom: 8px; }
