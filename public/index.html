@@ -33,256 +33,307 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="top-left">
-      <button id="navBack" class="icon-btn" aria-label="Back" title="Back" hidden>←</button>
-      <div class="brand"><span class="logo">💡</span> AIQUIZ</div>
-    </div>
-    <div class="top-actions">
-      <select id="langSwitch" class="lang-switch" title="Language">
-        <option value="english">EN</option>
-        <option value="telugu">తెలుగు</option>
-        <option value="hindi">हिन्दी</option>
-      </select>
-      <button id="installBtn" class="btn primary small" hidden>⬇️ <span data-i18n="install">Install</span></button>
-      <button id="themeToggle" class="icon-btn" title="Theme">🌙</button>
-    </div>
-  </header>
-
-  <div id="ptr" class="ptr"><span class="ptr-icon">↻</span></div>
-
-  <main class="wrap">
-    <!-- ONBOARDING -->
-    <section id="onboarding" class="card hero">
-      <div class="hero-emoji">💡📸</div>
-      <h1 data-i18n="hero_title">Turn any page into a quiz</h1>
-      <p class="muted" data-i18n="hero_sub">Scan your books or notes, or just type a topic — AIQUIZ builds exam-style questions so you learn faster. Made for competitive exam aspirants.</p>
-      <div class="steps">
-        <div class="step"><span class="step-ico">📷</span><b data-i18n="step1_t">Scan or type</b><small data-i18n="step1_d">Capture pages or enter a topic</small></div>
-        <div class="step"><span class="step-ico">✨</span><b data-i18n="step2_t">AI builds a quiz</b><small data-i18n="step2_d">Instant questions on your material</small></div>
-        <div class="step"><span class="step-ico">🏆</span><b data-i18n="step3_t">Test & improve</b><small data-i18n="step3_d">Score, review, track progress</small></div>
+  <div class="app-shell">
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+      <div class="side-logo">
+        <span class="logo">💡</span>
+        <div><b>AIQUIZ</b><small data-i18n="tagline">Learn Smarter · Score Higher</small></div>
       </div>
-      <button id="startBtn" class="btn primary big" data-i18n="get_started">Get started →</button>
-    </section>
-
-    <!-- STEP 1: Capture -->
-    <section id="capture" class="card" hidden>
-      <h1 data-i18n="cap_title">Scan your study material</h1>
-      <p class="muted" data-i18n="cap_sub">Add as many pages as you like — we'll build one quiz from all of them.</p>
-
-      <div class="camera-box">
-        <video id="video" autoplay playsinline muted></video>
-        <div class="frame-guide" id="frameGuide"></div>
-        <div id="flash" class="flash"></div>
-        <canvas id="canvas" hidden></canvas>
-        <div id="camError" class="cam-error" hidden></div>
+      <nav class="side-nav">
+        <button class="nav-item active" data-nav="home">🏠 <span data-i18n="nav_home">Home</span></button>
+        <button class="nav-item" data-nav="generate">✨ <span data-i18n="nav_generate">Generate Quiz</span></button>
+        <button class="nav-item" data-nav="quizzes">📋 <span data-i18n="nav_quizzes">My Quizzes</span></button>
+        <button class="nav-item" data-nav="material">☁️ <span data-i18n="nav_material">Study Material</span></button>
+        <button class="nav-item" data-nav="performance">📊 <span data-i18n="nav_perf">Performance</span></button>
+        <button class="nav-item" data-nav="coach">🤖 <span data-i18n="nav_coach">Study Coach</span></button>
+        <button class="nav-item" data-nav="settings">⚙️ <span data-i18n="nav_settings">Settings</span></button>
+      </nav>
+      <div class="side-cta">
+        <span class="side-cta-ico">✨</span>
+        <p data-i18n="side_cta">Turn your study material into smart quizzes with AI</p>
       </div>
+      <div class="side-foot">AIQUIZ · v1.0</div>
+    </aside>
+    <div class="side-scrim" id="sideScrim"></div>
 
-      <!-- big centered capture button -->
-      <div class="capture-row">
-        <button id="flipBtn" class="round-btn" title="Switch camera" aria-label="Flip camera">🔄</button>
-        <button id="shutterBtn" class="shutter" title="Capture" aria-label="Capture"></button>
-        <button id="torchBtn" class="round-btn" title="Flash" aria-label="Flash" hidden>🔦</button>
-      </div>
-      <p class="hint" data-i18n="cap_hint">📋 Place the page in the frame and tap the camera button.</p>
-
-      <div id="pageStrip" class="page-strip" hidden></div>
-
-      <div class="controls">
-        <button id="snapBtn" class="btn primary"><span data-i18n="add_page">＋ Add page</span></button>
-        <label class="btn ghost file">
-          🖼️ <span data-i18n="upload">Upload</span>
-          <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden />
-        </label>
-      </div>
-
-      <div class="divider"><span data-i18n="or">or</span></div>
-      <label class="topic-field"><span data-i18n="type_topic">Type a topic instead</span>
-        <input id="topicInput" type="text" data-i18n-ph="topic_ph" placeholder="e.g. Indian Polity – Fundamental Rights" />
-      </label>
-      <div class="chips-label muted" data-i18n="quick_topics">⚡ Quick topics — tap to start</div>
-      <div id="topicChips" class="chips"></div>
-
-      <div class="options">
-        <label><span data-i18n="questions">Questions</span>
-          <select id="count">
-            <option>5</option>
-            <option selected>10</option>
-            <option>15</option>
-            <option>20</option>
-          </select>
-        </label>
-        <label><span data-i18n="difficulty">Difficulty</span>
-          <select id="difficulty">
-            <option value="easy" data-i18n="easy">Easy</option>
-            <option value="medium" selected data-i18n="medium">Medium</option>
-            <option value="hard" data-i18n="hard">Hard</option>
-          </select>
-        </label>
-        <label><span data-i18n="quiz_lang">Quiz language</span>
-          <select id="quizLang">
-            <option value="english">English</option>
+    <!-- ================= MAIN COLUMN ================= -->
+    <div class="main-col">
+      <header class="topbar">
+        <div class="top-left">
+          <button id="sideToggle" class="icon-btn" aria-label="Menu">☰</button>
+          <button id="navBack" class="icon-btn" aria-label="Back" title="Back" hidden>←</button>
+        </div>
+        <div class="top-actions">
+          <select id="langSwitch" class="lang-switch" title="Language">
+            <option value="english">EN</option>
             <option value="telugu">తెలుగు</option>
             <option value="hindi">हिन्दी</option>
           </select>
-        </label>
-        <label><span data-i18n="mode">Quiz type</span>
-          <select id="mode">
-            <option value="study" data-i18n="mode_study">Study material</option>
-            <option value="observe" data-i18n="mode_observe">Observe a picture</option>
-          </select>
-        </label>
-      </div>
-      <label class="switch"><input type="checkbox" id="negMark" /> <span data-i18n="neg_mark">✍️ Exam mode — negative marking (−0.25 per wrong)</span></label>
-
-      <button id="generateBtn" class="btn primary big" disabled><span data-i18n="generate">Generate quiz</span> ✨</button>
-
-      <div id="statsBox" class="stats" hidden>
-        <div class="stat"><b id="stTotal">0</b><small data-i18n="st_total">Quizzes</small></div>
-        <div class="stat"><b id="stAvg">0%</b><small data-i18n="st_avg">Avg score</small></div>
-        <div class="stat"><b id="stBest">0%</b><small data-i18n="st_best">Best</small></div>
-        <div class="stat"><b id="stStreak">🔥0</b><small data-i18n="st_streak">Day streak</small></div>
-      </div>
-
-      <div id="historyBox" class="history" hidden>
-        <div class="history-head">
-          <h3 data-i18n="history_title">📊 Your score history</h3>
-          <button id="clearHistory" class="btn ghost small"><span data-i18n="clear_all">Clear all</span></button>
+          <button id="installBtn" class="btn primary small" hidden>⬇️ <span data-i18n="install">Install</span></button>
+          <button id="themeToggle" class="icon-btn" title="Theme">🌙</button>
+          <div class="profile"><span class="avatar">A</span><span class="profile-name" data-i18n="guest">Guest</span></div>
         </div>
-        <p class="muted hist-hint" data-i18n="hist_hint">Long-press an item to delete just that one.</p>
-        <div id="historyList"></div>
-      </div>
+      </header>
 
-      <section class="sample-quiz">
-        <h2>See a sample quiz</h2>
-        <p class="muted">This is the kind of exam-style question AIQUIZ creates from your material:</p>
-        <div class="sq-card">
-          <div class="sq-q">Q. Who is regarded as the chief architect of the Constitution of India?</div>
-          <div class="sq-opt">A. Mahatma Gandhi</div>
-          <div class="sq-opt correct">B. Dr. B. R. Ambedkar ✓</div>
-          <div class="sq-opt">C. Jawaharlal Nehru</div>
-          <div class="sq-opt">D. Sardar Vallabhbhai Patel</div>
-          <div class="sq-exp"><b>Explanation:</b> Dr. B. R. Ambedkar chaired the drafting committee of the Constitution of India and is widely regarded as its principal architect.</div>
-        </div>
-      </section>
+      <div id="ptr" class="ptr"><span class="ptr-icon">↻</span></div>
 
-      <section class="home-info">
-        <h2>Study smarter with AIQUIZ</h2>
-        <p>AIQUIZ turns whatever you are studying into instant practice questions. Instead of only reading a chapter, you test yourself on it — a proven method called <b>active recall</b> that helps you remember far more at exam time. Scan a page, upload a PDF, or type any topic, and get a quiz in seconds.</p>
+      <main class="content">
+        <!-- kept for compatibility; not shown -->
+        <section id="onboarding" hidden>
+          <button id="startBtn" hidden></button>
+        </section>
 
-        <h3>Built for competitive exam aspirants</h3>
-        <p>Whether you are preparing for UPSC, SSC, banking, railways, state public service commissions, or college entrance tests, AIQUIZ lets you revise unlimited questions from your own study material. Switch on Exam Mode for negative marking so your practice feels like the real test.</p>
+        <!-- ============ HOME / DASHBOARD ============ -->
+        <section id="capture" class="dash">
+          <div class="dash-main">
+            <!-- welcome banner -->
+            <div class="welcome">
+              <div class="welcome-text">
+                <h1 data-i18n="welcome_title">Welcome to AIQUIZ</h1>
+                <p data-i18n="welcome_sub">Upload your study material or enter a topic, and let AI create personalized quizzes for you!</p>
+              </div>
+              <div class="welcome-art">🤖💡</div>
+            </div>
 
-        <h3>Learn in your language</h3>
-        <p>Take quizzes in <b>English, Telugu, or Hindi</b>, and let the built-in narrator read each question aloud. Regional-language learners finally get a study tool made for them.</p>
+            <!-- feature cards -->
+            <div class="feature-cards">
+              <button class="feature" data-action="topic">
+                <span class="fico">📄</span><b data-i18n="f_topic_t">Generate from Topic</b><small data-i18n="f_topic_d">Enter any topic and get instant quiz questions.</small>
+              </button>
+              <button class="feature" data-action="upload">
+                <span class="fico">☁️</span><b data-i18n="f_upload_t">Upload Study Material</b><small data-i18n="f_upload_d">PDF, images or text files (Notes, PPTs, etc.)</small>
+              </button>
+              <button class="feature" data-action="scan">
+                <span class="fico">📷</span><b data-i18n="f_scan_t">Scan Notes</b><small data-i18n="f_scan_d">Take a photo of your notes and convert to quiz.</small>
+              </button>
+              <button class="feature" data-action="observe">
+                <span class="fico">✨</span><b data-i18n="f_ai_t">AI-Powered</b><small data-i18n="f_ai_d">Smart questions, instant feedback, and more!</small>
+              </button>
+            </div>
 
-        <h3>Track your progress</h3>
-        <p>Every quiz is scored and saved to your private history on this device, so you can watch your average and daily streak grow. No account, no sign-up, no personal details required.</p>
+            <!-- create quiz card -->
+            <div class="panel" id="createPanel">
+              <h2 data-i18n="create_title">Create Your Quiz</h2>
 
-        <p class="home-info-links">Learn more: <a href="about.html">About AIQUIZ</a> · <a href="how-it-works.html">How it works</a> · <a href="faq.html">FAQ</a></p>
-      </section>
+              <label class="field"><span data-i18n="enter_topic">Enter Topic</span>
+                <input id="topicInput" type="text" data-i18n-ph="topic_ph" placeholder="e.g. Indian Polity – Fundamental Rights" />
+              </label>
+              <div class="chips-label muted" data-i18n="quick_topics">⚡ Quick topics — tap to start</div>
+              <div id="topicChips" class="chips"></div>
 
-      <div class="ad-slot">
-        <span class="ad-label">Advertisement</span>
-        <ins class="adsbygoogle" style="display:block"
-             data-ad-client="ca-pub-7783848547058776"
-             data-ad-slot="5066850141"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-      </div>
+              <div class="options">
+                <label><span data-i18n="questions">Questions</span>
+                  <select id="count"><option>5</option><option selected>10</option><option>15</option><option>20</option></select>
+                </label>
+                <label><span data-i18n="difficulty">Difficulty</span>
+                  <select id="difficulty">
+                    <option value="easy" data-i18n="easy">Easy</option>
+                    <option value="medium" selected data-i18n="medium">Medium</option>
+                    <option value="hard" data-i18n="hard">Hard</option>
+                  </select>
+                </label>
+                <label><span data-i18n="quiz_lang">Language</span>
+                  <select id="quizLang">
+                    <option value="english">English</option>
+                    <option value="telugu">తెలుగు</option>
+                    <option value="hindi">हिन्दी</option>
+                  </select>
+                </label>
+                <label><span data-i18n="mode">Quiz type</span>
+                  <select id="mode">
+                    <option value="study" data-i18n="mode_study">Study material</option>
+                    <option value="observe" data-i18n="mode_observe">Observe a picture</option>
+                  </select>
+                </label>
+              </div>
+              <label class="switch"><input type="checkbox" id="negMark" /> <span data-i18n="neg_mark">✍️ Exam mode — negative marking (−0.25 per wrong)</span></label>
 
-      <footer class="site-foot">
-        <a href="about.html">About</a> · <a href="how-it-works.html">How it works</a> · <a href="study-tips.html">Study tips</a> · <a href="faq.html">FAQ</a> · <a href="privacy.html">Privacy</a>
-        <br />© 2026 AIQUIZ
-      </footer>
-    </section>
+              <!-- camera (revealed on demand) -->
+              <div id="cameraWrap" class="camera-wrap" hidden>
+                <div class="camera-box">
+                  <video id="video" autoplay playsinline muted></video>
+                  <div class="frame-guide" id="frameGuide"></div>
+                  <div id="flash" class="flash"></div>
+                  <canvas id="canvas" hidden></canvas>
+                  <div id="camError" class="cam-error" hidden></div>
+                  <button id="closeCam" class="close-cam" aria-label="Close camera">✕</button>
+                </div>
+                <div class="capture-row">
+                  <button id="flipBtn" class="round-btn" title="Switch camera" aria-label="Flip camera">🔄</button>
+                  <button id="shutterBtn" class="shutter" title="Capture" aria-label="Capture"></button>
+                  <button id="torchBtn" class="round-btn" title="Flash" aria-label="Flash" hidden>🔦</button>
+                </div>
+                <p class="hint" data-i18n="cap_hint">📋 Place the page in the frame and tap the camera button.</p>
+              </div>
 
-    <!-- STEP 2: Loading -->
-    <section id="loading" class="card center" hidden>
-      <div class="spinner"></div>
-      <h2 data-i18n="loading_title">Reading your material…</h2>
-      <p class="muted" data-i18n="loading_sub">Understanding the topic and writing questions.</p>
-      <p class="muted small-note" data-i18n="loading_note">First time may take up to a minute — please wait.</p>
-    </section>
+              <!-- upload dropzone -->
+              <label id="dropzone" class="dropzone">
+                <span class="dz-ico">⬆️</span>
+                <b data-i18n="dz_title">Or upload your study material</b>
+                <small data-i18n="dz_sub">PDF, DOC, TXT, JPG, PNG (Max 25MB)</small>
+                <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden />
+                <span class="dz-btn" data-i18n="choose_file">Choose File</span>
+              </label>
 
-    <!-- STEP 3: Quiz -->
-    <section id="quiz" class="card" hidden>
-      <!-- AI narrator character -->
-      <div id="tutor" class="tutor" title="Tap to replay">
-        <svg id="mascot" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
-          <!-- antenna -->
-          <line x1="60" y1="20" x2="60" y2="8" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="60" cy="6" r="4" fill="var(--primary)"/>
-          <!-- head -->
-          <rect x="16" y="20" width="88" height="80" rx="26" fill="var(--card2)" stroke="var(--primary)" stroke-width="3"/>
-          <!-- ears -->
-          <rect x="8" y="48" width="8" height="22" rx="4" fill="var(--primary)"/>
-          <rect x="104" y="48" width="8" height="22" rx="4" fill="var(--primary)"/>
-          <!-- brows -->
-          <line id="browL" x1="34" y1="42" x2="50" y2="42" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
-          <line id="browR" x1="70" y1="42" x2="86" y2="42" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
-          <!-- eyes -->
-          <g id="eyes">
-            <ellipse id="eyeL" cx="44" cy="56" rx="7" ry="9" fill="var(--text)"/>
-            <ellipse id="eyeR" cx="76" cy="56" rx="7" ry="9" fill="var(--text)"/>
-          </g>
-          <!-- cheeks -->
-          <circle cx="34" cy="74" r="5" fill="var(--primary)" opacity=".25"/>
-          <circle cx="86" cy="74" r="5" fill="var(--primary)" opacity=".25"/>
-          <!-- mouth -->
-          <path id="smile" d="M46 78 Q60 88 74 78" fill="none" stroke="var(--text)" stroke-width="3.5" stroke-linecap="round"/>
-          <g id="mouthG">
-            <ellipse id="mouthOpen" cx="60" cy="80" rx="11" ry="8" fill="var(--text)"/>
-          </g>
-        </svg>
-        <div id="tutorBubble" class="tutor-bubble" hidden></div>
-      </div>
+              <div id="pageStrip" class="page-strip" hidden></div>
 
-      <div class="quiz-head">
-        <h2 id="quizTopic">Quiz</h2>
-        <p id="quizSummary" class="muted"></p>
-      </div>
-      <div class="quiz-stats">
-        <span id="qCounter" class="pill"></span>
-        <span id="liveScore" class="pill score"></span>
-        <span id="timer" class="pill">⏱️ 0:00</span>
-        <button id="speakBtn" class="pill btn-pill" title="Replay">🔊</button>
-        <button id="muteBtn" class="pill btn-pill" title="Narrator on/off">🎙️</button>
-      </div>
-      <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
-      <div id="questionArea"></div>
-      <div class="quiz-foot">
-        <button id="skipBtn" class="btn ghost"><span data-i18n="skip">Skip</span></button>
-        <button id="nextBtn" class="btn primary" disabled><span data-i18n="next">Next</span> →</button>
-      </div>
-    </section>
+              <button id="generateBtn" class="btn primary big" disabled>✨ <span data-i18n="generate">Generate Quiz</span></button>
+            </div>
 
-    <!-- STEP 4: Results -->
-    <section id="results" class="card center" hidden>
-      <div id="scoreRing" class="score-ring"><span id="scoreText">0%</span></div>
-      <h2 id="scoreHeadline">Nice work!</h2>
-      <p id="scoreDetail" class="muted"></p>
-      <div class="result-actions">
-        <button id="retryBtn" class="btn ghost">🔁 <span data-i18n="retry">Retry</span></button>
-        <button id="regenBtn" class="btn ghost">🔄 <span data-i18n="new_quiz">New quiz</span></button>
-        <button id="shareBtn" class="btn ghost">📤 <span data-i18n="share">Share</span></button>
-      </div>
-      <label class="wrong-toggle"><input type="checkbox" id="wrongOnly" /> <span data-i18n="wrong_only">Show wrong answers only</span></label>
-      <div id="reviewList" class="review"></div>
-      <button id="restartBtn" class="btn primary big">📷 <span data-i18n="scan_another">Scan another</span></button>
+            <!-- content for AdSense value / SEO -->
+            <section class="sample-quiz">
+              <h2 data-i18n="sample_title">See a sample quiz</h2>
+              <p class="muted" data-i18n="sample_sub">This is the kind of exam-style question AIQUIZ creates from your material:</p>
+              <div class="sq-card">
+                <div class="sq-q">Q. Who is regarded as the chief architect of the Constitution of India?</div>
+                <div class="sq-opt">A. Mahatma Gandhi</div>
+                <div class="sq-opt correct">B. Dr. B. R. Ambedkar ✓</div>
+                <div class="sq-opt">C. Jawaharlal Nehru</div>
+                <div class="sq-opt">D. Sardar Vallabhbhai Patel</div>
+                <div class="sq-exp"><b>Explanation:</b> Dr. B. R. Ambedkar chaired the drafting committee of the Constitution of India and is widely regarded as its principal architect.</div>
+              </div>
+            </section>
 
-      <div class="ad-slot">
-        <span class="ad-label">Advertisement</span>
-        <ins class="adsbygoogle" style="display:block"
-             data-ad-client="ca-pub-7783848547058776"
-             data-ad-slot="3523115449"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-      </div>
-    </section>
-  </main>
+            <section class="home-info">
+              <h2>Study smarter with AIQUIZ</h2>
+              <p>AIQUIZ turns whatever you are studying into instant practice questions. Instead of only reading a chapter, you test yourself on it — a proven method called <b>active recall</b> that helps you remember far more at exam time. Scan a page, upload a PDF, or type any topic, and get a quiz in seconds.</p>
+              <h3>Built for competitive exam aspirants</h3>
+              <p>Whether you are preparing for UPSC, SSC, banking, railways, state public service commissions, or college entrance tests, AIQUIZ lets you revise unlimited questions from your own study material. Switch on Exam Mode for negative marking so your practice feels like the real test.</p>
+              <h3>Learn in your language</h3>
+              <p>Take quizzes in <b>English, Telugu, or Hindi</b>, and let the built-in narrator read each question aloud. Regional-language learners finally get a study tool made for them.</p>
+              <h3>Track your progress</h3>
+              <p>Every quiz is scored and saved to your private history on this device, so you can watch your average and daily streak grow. No account, no sign-up, no personal details required.</p>
+              <p class="home-info-links">Learn more: <a href="about.html">About AIQUIZ</a> · <a href="how-it-works.html">How it works</a> · <a href="study-tips.html">Study tips</a> · <a href="faq.html">FAQ</a></p>
+            </section>
 
-  <!-- custom confirm dialog (replaces the browser's native popup) -->
+            <div class="ad-slot">
+              <span class="ad-label">Advertisement</span>
+              <ins class="adsbygoogle" style="display:block"
+                   data-ad-client="ca-pub-7783848547058776"
+                   data-ad-slot="5066850141"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+            </div>
+
+            <footer class="site-foot">
+              <a href="about.html">About</a> · <a href="how-it-works.html">How it works</a> · <a href="study-tips.html">Study tips</a> · <a href="faq.html">FAQ</a> · <a href="privacy.html">Privacy</a>
+              <br />© 2026 AIQUIZ
+            </footer>
+          </div>
+
+          <!-- ============ RIGHT COLUMN ============ -->
+          <aside class="dash-right">
+            <div class="panel">
+              <div class="panel-head"><h3 data-i18n="recent_title">Recent Quizzes</h3>
+                <button id="clearHistory" class="link-btn"><span data-i18n="clear_all">Clear all</span></button>
+              </div>
+              <div id="historyList" class="recent-list"></div>
+              <p id="recentEmpty" class="muted small" data-i18n="recent_empty">No quizzes yet — create your first one!</p>
+              <p class="muted hist-hint" data-i18n="hist_hint" hidden>Long-press an item to delete just that one.</p>
+            </div>
+
+            <div class="panel" id="perfPanel" hidden>
+              <h3 data-i18n="perf_title">Your Performance</h3>
+              <div class="perf">
+                <div id="scoreRingHome" class="score-ring small"><span id="perfPct">0%</span><small data-i18n="perf_overall">Overall</small></div>
+                <div id="perfList" class="perf-list"></div>
+              </div>
+              <div id="statsBox" class="stats" hidden>
+                <div class="stat"><b id="stTotal">0</b><small data-i18n="st_total">Quizzes</small></div>
+                <div class="stat"><b id="stAvg">0%</b><small data-i18n="st_avg">Avg score</small></div>
+                <div class="stat"><b id="stBest">0%</b><small data-i18n="st_best">Best</small></div>
+                <div class="stat"><b id="stStreak">🔥0</b><small data-i18n="st_streak">Day streak</small></div>
+              </div>
+            </div>
+
+            <div class="motiv">
+              <span>🏆</span>
+              <p data-i18n="motiv">Small steps every day lead to big results!</p>
+            </div>
+          </aside>
+        </section>
+
+        <!-- ============ LOADING ============ -->
+        <section id="loading" class="screen center" hidden>
+          <div class="spinner"></div>
+          <h2 data-i18n="loading_title">Reading your material…</h2>
+          <p class="muted" data-i18n="loading_sub">Understanding the topic and writing questions.</p>
+          <p class="muted small-note" data-i18n="loading_note">First time may take up to a minute — please wait.</p>
+        </section>
+
+        <!-- ============ QUIZ ============ -->
+        <section id="quiz" class="screen" hidden>
+          <div id="tutor" class="tutor" title="Tap to replay">
+            <svg id="mascot" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+              <line x1="60" y1="20" x2="60" y2="8" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="60" cy="6" r="4" fill="var(--primary)"/>
+              <rect x="16" y="20" width="88" height="80" rx="26" fill="var(--card2)" stroke="var(--primary)" stroke-width="3"/>
+              <rect x="8" y="48" width="8" height="22" rx="4" fill="var(--primary)"/>
+              <rect x="104" y="48" width="8" height="22" rx="4" fill="var(--primary)"/>
+              <line id="browL" x1="34" y1="42" x2="50" y2="42" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+              <line id="browR" x1="70" y1="42" x2="86" y2="42" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+              <g id="eyes">
+                <ellipse id="eyeL" cx="44" cy="56" rx="7" ry="9" fill="var(--text)"/>
+                <ellipse id="eyeR" cx="76" cy="56" rx="7" ry="9" fill="var(--text)"/>
+              </g>
+              <circle cx="34" cy="74" r="5" fill="var(--primary)" opacity=".25"/>
+              <circle cx="86" cy="74" r="5" fill="var(--primary)" opacity=".25"/>
+              <path id="smile" d="M46 78 Q60 88 74 78" fill="none" stroke="var(--text)" stroke-width="3.5" stroke-linecap="round"/>
+              <g id="mouthG"><ellipse id="mouthOpen" cx="60" cy="80" rx="11" ry="8" fill="var(--text)"/></g>
+            </svg>
+            <div id="tutorBubble" class="tutor-bubble" hidden></div>
+          </div>
+          <div class="panel quiz-panel">
+            <div class="quiz-head">
+              <h2 id="quizTopic">Quiz</h2>
+              <p id="quizSummary" class="muted"></p>
+            </div>
+            <div class="quiz-stats">
+              <span id="qCounter" class="pill"></span>
+              <span id="liveScore" class="pill score"></span>
+              <span id="timer" class="pill">⏱️ 0:00</span>
+              <button id="speakBtn" class="pill btn-pill" title="Replay">🔊</button>
+              <button id="muteBtn" class="pill btn-pill" title="Narrator on/off">🎙️</button>
+            </div>
+            <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+            <div id="questionArea"></div>
+            <div class="quiz-foot">
+              <button id="skipBtn" class="btn ghost"><span data-i18n="skip">Skip</span></button>
+              <button id="nextBtn" class="btn primary" disabled><span data-i18n="next">Next</span> →</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ RESULTS ============ -->
+        <section id="results" class="screen center" hidden>
+          <div class="panel">
+            <div id="scoreRing" class="score-ring"><span id="scoreText">0%</span></div>
+            <h2 id="scoreHeadline">Nice work!</h2>
+            <p id="scoreDetail" class="muted"></p>
+            <div class="result-actions">
+              <button id="retryBtn" class="btn ghost">🔁 <span data-i18n="retry">Retry</span></button>
+              <button id="regenBtn" class="btn ghost">🔄 <span data-i18n="new_quiz">New quiz</span></button>
+              <button id="shareBtn" class="btn ghost">📤 <span data-i18n="share">Share</span></button>
+            </div>
+            <label class="wrong-toggle"><input type="checkbox" id="wrongOnly" /> <span data-i18n="wrong_only">Show wrong answers only</span></label>
+            <div id="reviewList" class="review"></div>
+            <button id="restartBtn" class="btn primary big">📷 <span data-i18n="scan_another">Scan another</span></button>
+            <div class="ad-slot">
+              <span class="ad-label">Advertisement</span>
+              <ins class="adsbygoogle" style="display:block"
+                   data-ad-client="ca-pub-7783848547058776"
+                   data-ad-slot="3523115449"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- custom confirm dialog -->
   <div id="confirmModal" class="modal" hidden>
     <div class="modal-card confirm-card">
       <p id="confirmMsg" class="confirm-msg"></p>

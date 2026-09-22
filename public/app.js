@@ -5,6 +5,21 @@ const $ = (id) => document.getElementById(id);
 // ---------- Translations (full app UI) ----------
 const I18N = {
   english: {
+    tagline: 'Learn Smarter · Score Higher', guest: 'Guest',
+    nav_home: 'Home', nav_generate: 'Generate Quiz', nav_quizzes: 'My Quizzes',
+    nav_material: 'Study Material', nav_perf: 'Performance', nav_coach: 'Study Coach', nav_settings: 'Settings',
+    side_cta: 'Turn your study material into smart quizzes with AI',
+    welcome_title: 'Welcome to AIQUIZ',
+    welcome_sub: 'Upload your study material or enter a topic, and let AI create personalized quizzes for you!',
+    f_topic_t: 'Generate from Topic', f_topic_d: 'Enter any topic and get instant quiz questions.',
+    f_upload_t: 'Upload Study Material', f_upload_d: 'PDF, images or text files (Notes, PPTs, etc.)',
+    f_scan_t: 'Scan Notes', f_scan_d: 'Take a photo of your notes and convert to quiz.',
+    f_ai_t: 'AI-Powered', f_ai_d: 'Smart questions, instant feedback, and more!',
+    create_title: 'Create Your Quiz', enter_topic: 'Enter Topic',
+    dz_title: 'Or upload your study material', dz_sub: 'PDF, DOC, TXT, JPG, PNG (Max 25MB)', choose_file: 'Choose File',
+    sample_title: 'See a sample quiz', sample_sub: 'This is the kind of exam-style question AIQUIZ creates from your material:',
+    recent_title: 'Recent Quizzes', recent_empty: 'No quizzes yet — create your first one!',
+    perf_title: 'Your Performance', perf_overall: 'Overall', motiv: 'Small steps every day lead to big results!',
     hero_title: 'Turn any page into a quiz',
     hero_sub: 'Scan your books or notes, or just type a topic — AIQUIZ builds exam-style questions so you learn faster. Made for competitive exam aspirants.',
     step1_t: 'Scan or type', step1_d: 'Capture pages or enter a topic',
@@ -324,7 +339,7 @@ function show(name) {
   // Header back button: hidden on the home/onboarding screens, shown elsewhere.
   const nb = $('navBack');
   if (nb) nb.hidden = name === 'onboarding' || name === 'capture';
-  const wrap = document.querySelector('.wrap');
+  const wrap = document.querySelector('.content');
   if (wrap) wrap.scrollTo({ top: 0, behavior: 'smooth' });
   setTimeout(() => initAds(name), 150); // load ads once the section is visible
   clearInterval(loadingTimer);
@@ -384,15 +399,59 @@ function askConfirm(msg) {
 function goHome() {
   Mascot.stop();
   clearInterval(timerId);
+  stopCamera();
+  if ($('cameraWrap')) $('cameraWrap').hidden = true;
   show('capture');
-  startCamera();
+  renderHistory();
 }
-$('startBtn').onclick = () => {
-  localStorage.setItem('aiquiz_onboarded', 'yes');
-  goHome();
-};
+if ($('startBtn')) $('startBtn').onclick = goHome;
 // Header back button → return home from any screen.
 $('navBack').onclick = goHome;
+
+// ---------- Sidebar + navigation ----------
+function closeSidebar() {
+  $('sidebar').classList.remove('open');
+  $('sideScrim').classList.remove('show');
+}
+$('sideToggle').onclick = () => {
+  const open = $('sidebar').classList.toggle('open');
+  $('sideScrim').classList.toggle('show', open);
+};
+$('sideScrim').onclick = closeSidebar;
+
+function openCamera() {
+  goHome();
+  $('cameraWrap').hidden = false;
+  startCamera();
+  $('cameraWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+document.querySelectorAll('.nav-item').forEach((item) => {
+  item.onclick = () => {
+    document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
+    item.classList.add('active');
+    closeSidebar();
+    const nav = item.dataset.nav;
+    if (nav === 'coach') { location.href = 'study-tips.html'; return; }
+    goHome();
+    if (nav === 'generate') { $('createPanel').scrollIntoView({ behavior: 'smooth' }); $('topicInput').focus(); }
+    else if (nav === 'material') $('fileInput').click();
+    else if (nav === 'quizzes' || nav === 'performance') {
+      const p = $(nav === 'quizzes' ? 'historyList' : 'perfPanel');
+      if (p) p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (nav === 'settings') $('createPanel').scrollIntoView({ behavior: 'smooth' });
+  };
+});
+// Feature cards
+document.querySelectorAll('.feature').forEach((f) => {
+  f.onclick = () => {
+    const a = f.dataset.action;
+    if (a === 'topic') { $('topicInput').focus(); $('topicInput').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    else if (a === 'upload') $('fileInput').click();
+    else if (a === 'scan') openCamera();
+    else if (a === 'observe') { $('mode').value = 'observe'; localStorage.setItem('aiquiz_set_mode', 'observe'); $('createPanel').scrollIntoView({ behavior: 'smooth' }); $('topicInput').focus(); }
+  };
+});
+if ($('closeCam')) $('closeCam').onclick = () => { stopCamera(); $('cameraWrap').hidden = true; };
 
 // ---------- Camera ----------
 const video = $('video');
@@ -543,7 +602,7 @@ function syncGenerate() {
   $('generateBtn').disabled = pages.length === 0 && !$('topicInput').value.trim();
 }
 
-$('snapBtn').onclick = capture;
+if ($('snapBtn')) $('snapBtn').onclick = capture;
 $('shutterBtn').onclick = capture;
 $('flipBtn').onclick = () => {
   facing = facing === 'environment' ? 'user' : 'environment';
@@ -826,7 +885,6 @@ $('restartBtn').onclick = () => {
   renderPages();
   renderHistory();
   show('capture');
-  startCamera();
 };
 
 // ---------- History ----------
@@ -841,39 +899,58 @@ function saveHistory(entry) {
   localStorage.setItem(HKEY, JSON.stringify(hist.slice(0, 50)));
 }
 
+const PERF_COLORS = ['#22c1a6', '#6d5efc', '#f59e0b', '#e11d48', '#0ea5e9', '#a855f7'];
+
 function renderStats() {
   const hist = loadHistory();
   const box = $('statsBox');
-  if (!hist.length) { box.hidden = true; return; }
-  box.hidden = false;
+  const perfPanel = $('perfPanel');
+  if (!hist.length) { if (box) box.hidden = true; if (perfPanel) perfPanel.hidden = true; return; }
+  if (box) box.hidden = false;
+  if (perfPanel) perfPanel.hidden = false;
   const total = hist.length;
   const avg = Math.round(hist.reduce((s, h) => s + h.pct, 0) / total);
   const best = Math.max(...hist.map((h) => h.pct));
-  // streak: consecutive calendar days (ending today or yesterday) with a quiz
   const days = new Set(hist.map((h) => h.day).filter(Boolean));
   let streak = 0;
   const d = new Date();
   const iso = (x) => x.toISOString().slice(0, 10);
-  if (!days.has(iso(d))) d.setDate(d.getDate() - 1); // allow today not done yet
+  if (!days.has(iso(d))) d.setDate(d.getDate() - 1);
   while (days.has(iso(d))) { streak++; d.setDate(d.getDate() - 1); }
-  $('stTotal').textContent = total;
-  $('stAvg').textContent = avg + '%';
-  $('stBest').textContent = best + '%';
-  $('stStreak').textContent = '🔥' + streak;
+  if ($('stTotal')) { $('stTotal').textContent = total; $('stAvg').textContent = avg + '%'; $('stBest').textContent = best + '%'; $('stStreak').textContent = '🔥' + streak; }
+  // Performance donut (overall avg) + top topics
+  const ring = $('scoreRingHome');
+  if (ring) { ring.style.setProperty('--p', avg + '%'); $('perfPct').textContent = avg + '%'; }
+  const perfList = $('perfList');
+  if (perfList) {
+    // average per topic (latest 6 distinct topics)
+    const byTopic = {};
+    hist.forEach((h) => { (byTopic[h.topic] = byTopic[h.topic] || []).push(h.pct); });
+    const rows = Object.entries(byTopic).slice(0, 6);
+    perfList.innerHTML = rows.map(([topic, arr], i) => {
+      const p = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+      const short = topic.length > 16 ? topic.slice(0, 15) + '…' : topic;
+      return `<div class="perf-row"><span><span class="dot" style="background:${PERF_COLORS[i % PERF_COLORS.length]}"></span>${short}</span><b>${p}%</b></div>`;
+    }).join('');
+  }
 }
 function renderHistory() {
   renderStats();
   const hist = loadHistory();
-  $('historyBox').hidden = hist.length === 0;
+  const empty = $('recentEmpty');
+  if (empty) empty.hidden = hist.length !== 0;
+  const hint = document.querySelector('.hist-hint');
+  if (hint) hint.hidden = hist.length === 0;
   const list = $('historyList');
+  if (!list) return;
   list.innerHTML = '';
-  hist.forEach((h, idx) => {
+  hist.slice(0, 12).forEach((h, idx) => {
     const cls = h.pct >= 80 ? 'good' : h.pct >= 50 ? 'mid' : 'low';
     const item = document.createElement('div');
     item.className = 'hist-item';
     item.innerHTML =
       `<div class="h-left"><div class="h-topic">${h.topic}</div><div class="h-meta">${h.when}</div></div>` +
-      `<div class="h-score ${cls}">${h.pct}% <span class="h-meta">(${h.score}/${h.total})</span></div>`;
+      `<div class="h-score ${cls}">${h.pct}%</div>`;
     attachLongPress(item, () => deleteHistoryItem(idx));
     list.appendChild(item);
   });
@@ -922,7 +999,7 @@ $('clearHistory').onclick = async () => {
 
 // ---------- Custom pull-to-refresh (app-branded, only on the home screen) ----------
 (function () {
-  const wrap = document.querySelector('.wrap');
+  const wrap = document.querySelector('.content');
   const ptr = $('ptr');
   if (!wrap || !ptr) return;
   let startY = null, pull = 0, ready = false;
@@ -983,11 +1060,8 @@ $('negMark').addEventListener('change', () =>
   localStorage.setItem('aiquiz_neg', $('negMark').checked ? '1' : '0')
 );
 
-// Show onboarding only the first time; returning users go straight to the camera.
-if (localStorage.getItem('aiquiz_onboarded') === 'yes') {
-  show('capture');
-  startCamera();
-}
+// Dashboard home is the default screen (camera opens on demand via Scan).
+show('capture');
 
 // Register service worker (makes the app installable / Play-Store ready).
 // Auto-reload once when a new version takes over, so updates show immediately.
