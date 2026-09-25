@@ -20,6 +20,8 @@ const I18N = {
     sample_title: 'See a sample quiz', sample_sub: 'This is the kind of exam-style question AIQUIZ creates from your material:',
     recent_title: 'Recent Quizzes', recent_empty: 'No quizzes yet — create your first one!',
     perf_title: 'Your Performance', perf_overall: 'Overall', motiv: 'Small steps every day lead to big results!',
+    coach_title: 'Study Coach — tips to score higher', read_full: 'Read the full study guide →',
+    set_theme: 'Dark mode', set_lang: 'App language', set_narrator: 'Narrator (read aloud)', set_clear: 'Clear all my data',
     hero_title: 'Turn any page into a quiz',
     hero_sub: 'Scan your books or notes, or just type a topic — AIQUIZ builds exam-style questions so you learn faster. Made for competitive exam aspirants.',
     step1_t: 'Scan or type', step1_d: 'Capture pages or enter a topic',
@@ -281,8 +283,11 @@ function applyLang() {
   document.documentElement.lang =
     lang === 'telugu' ? 'te' : lang === 'hindi' ? 'hi' : 'en';
   $('langSwitch').value = lang;
+  if ($('setLang')) $('setLang').value = lang;
   const ql = $('quizLang');
   if (ql) ql.value = lang; // default quiz language follows the app language (user can override)
+  const title = $('pageTitle');
+  if (title && title.getAttribute('data-i18n')) title.textContent = t(title.getAttribute('data-i18n'));
   renderChips();
 }
 
@@ -319,6 +324,7 @@ let theme = localStorage.getItem('aiquiz_theme') || 'light';
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
   $('themeToggle').textContent = theme === 'light' ? '🌙' : '☀️';
+  if ($('setDark')) $('setDark').checked = theme === 'dark';
   // Tint the phone's status/navigation bars to match the app (seamless, native feel).
   const color = theme === 'dark' ? '#07081a' : '#e7ebfa';
   let m = document.querySelector('meta[name="theme-color"]');
@@ -396,19 +402,32 @@ function askConfirm(msg) {
   });
 }
 
+// ---------- Page navigation (separate views, not scrolling) ----------
+const PAGE_KEYS = { home: 'nav_home', generate: 'nav_generate', quizzes: 'nav_quizzes', performance: 'nav_perf', coach: 'nav_coach', settings: 'nav_settings' };
+let currentPage = 'home';
+function showPage(name) {
+  currentPage = name;
+  document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.dataset.page === name));
+  document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.nav === name));
+  const title = $('pageTitle');
+  if (title && PAGE_KEYS[name]) { title.setAttribute('data-i18n', PAGE_KEYS[name]); title.textContent = t(PAGE_KEYS[name]); }
+  if (name === 'quizzes' || name === 'performance') renderHistory();
+  const c = document.querySelector('.content');
+  if (c) c.scrollTop = 0;
+}
+
 function goHome() {
   Mascot.stop();
   clearInterval(timerId);
   stopCamera();
   if ($('cameraWrap')) $('cameraWrap').hidden = true;
   show('capture');
+  showPage('home');
   renderHistory();
 }
 if ($('startBtn')) $('startBtn').onclick = goHome;
-// Header back button → return home from any screen.
-$('navBack').onclick = goHome;
+if ($('navBack')) $('navBack').onclick = goHome;
 
-// ---------- Sidebar + navigation ----------
 function closeSidebar() {
   $('sidebar').classList.remove('open');
   $('sideScrim').classList.remove('show');
@@ -420,37 +439,34 @@ $('sideToggle').onclick = () => {
 $('sideScrim').onclick = closeSidebar;
 
 function openCamera() {
-  goHome();
+  show('capture');
+  showPage('generate');
   $('cameraWrap').hidden = false;
   startCamera();
-  $('cameraWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
+// Sidebar nav → open the matching page.
 document.querySelectorAll('.nav-item').forEach((item) => {
   item.onclick = () => {
-    document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
-    item.classList.add('active');
     closeSidebar();
+    show('capture');
     const nav = item.dataset.nav;
-    if (nav === 'coach') { location.href = 'study-tips.html'; return; }
-    goHome();
-    if (nav === 'generate') { $('createPanel').scrollIntoView({ behavior: 'smooth' }); $('topicInput').focus(); }
-    else if (nav === 'material') $('fileInput').click();
-    else if (nav === 'quizzes' || nav === 'performance') {
-      const p = $(nav === 'quizzes' ? 'historyList' : 'perfPanel');
-      if (p) p.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else if (nav === 'settings') $('createPanel').scrollIntoView({ behavior: 'smooth' });
+    if (nav === 'material') { showPage('generate'); $('fileInput').click(); }
+    else showPage(nav);
   };
 });
-// Feature cards
+// Feature cards → open the generate page in the right mode.
 document.querySelectorAll('.feature').forEach((f) => {
   f.onclick = () => {
     const a = f.dataset.action;
-    if (a === 'topic') { $('topicInput').focus(); $('topicInput').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    show('capture');
+    showPage('generate');
+    if (a === 'topic') $('topicInput').focus();
     else if (a === 'upload') $('fileInput').click();
     else if (a === 'scan') openCamera();
-    else if (a === 'observe') { $('mode').value = 'observe'; localStorage.setItem('aiquiz_set_mode', 'observe'); $('createPanel').scrollIntoView({ behavior: 'smooth' }); $('topicInput').focus(); }
+    else if (a === 'observe') { $('mode').value = 'observe'; localStorage.setItem('aiquiz_set_mode', 'observe'); $('topicInput').focus(); }
   };
 });
+if ($('scanBtn')) $('scanBtn').onclick = openCamera;
 if ($('closeCam')) $('closeCam').onclick = () => { stopCamera(); $('cameraWrap').hidden = true; };
 
 // ---------- Camera ----------
@@ -775,14 +791,20 @@ $('mascot').onclick = toggleNarration;
 function updateMute() {
   $('muteBtn').textContent = narratorOn ? '🎙️' : '🔇';
   $('muteBtn').classList.toggle('active', narratorOn);
+  if ($('setNarrator')) $('setNarrator').checked = narratorOn;
 }
-$('muteBtn').onclick = () => {
-  narratorOn = !narratorOn;
+function setNarrator(on) {
+  narratorOn = on;
   localStorage.setItem('aiquiz_narrator', narratorOn ? 'on' : 'off');
   updateMute();
   if (!narratorOn) Mascot.stop();
-  else narrate();
-};
+}
+$('muteBtn').onclick = () => { setNarrator(!narratorOn); if (narratorOn) narrate(); };
+
+// ---------- Settings page ----------
+if ($('setNarrator')) $('setNarrator').onchange = (e) => setNarrator(e.target.checked);
+if ($('setDark')) $('setDark').onchange = (e) => { theme = e.target.checked ? 'dark' : 'light'; localStorage.setItem('aiquiz_theme', theme); applyTheme(); };
+if ($('setLang')) $('setLang').onchange = (e) => { lang = e.target.value; localStorage.setItem('aiquiz_lang', lang); applyLang(); renderHistory(); };
 
 $('skipBtn').onclick = () => {
   const q = quiz.questions[current];
@@ -901,13 +923,13 @@ function saveHistory(entry) {
 
 const PERF_COLORS = ['#22c1a6', '#6d5efc', '#f59e0b', '#e11d48', '#0ea5e9', '#a855f7'];
 
+const setAll = (sel, val) => document.querySelectorAll(sel).forEach((el) => (el.textContent = val));
+const showAll = (sel, vis) => document.querySelectorAll(sel).forEach((el) => (el.hidden = !vis));
+
 function renderStats() {
   const hist = loadHistory();
-  const box = $('statsBox');
-  const perfPanel = $('perfPanel');
-  if (!hist.length) { if (box) box.hidden = true; if (perfPanel) perfPanel.hidden = true; return; }
-  if (box) box.hidden = false;
-  if (perfPanel) perfPanel.hidden = false;
+  if (!hist.length) { showAll('.js-stats', false); showAll('.js-perf', false); showAll('.js-perf-empty', true); return; }
+  showAll('.js-stats', true); showAll('.js-perf', true); showAll('.js-perf-empty', false);
   const total = hist.length;
   const avg = Math.round(hist.reduce((s, h) => s + h.pct, 0) / total);
   const best = Math.max(...hist.map((h) => h.pct));
@@ -917,42 +939,36 @@ function renderStats() {
   const iso = (x) => x.toISOString().slice(0, 10);
   if (!days.has(iso(d))) d.setDate(d.getDate() - 1);
   while (days.has(iso(d))) { streak++; d.setDate(d.getDate() - 1); }
-  if ($('stTotal')) { $('stTotal').textContent = total; $('stAvg').textContent = avg + '%'; $('stBest').textContent = best + '%'; $('stStreak').textContent = '🔥' + streak; }
-  // Performance donut (overall avg) + top topics
-  const ring = $('scoreRingHome');
-  if (ring) { ring.style.setProperty('--p', avg + '%'); $('perfPct').textContent = avg + '%'; }
-  const perfList = $('perfList');
-  if (perfList) {
-    // average per topic (latest 6 distinct topics)
-    const byTopic = {};
-    hist.forEach((h) => { (byTopic[h.topic] = byTopic[h.topic] || []).push(h.pct); });
-    const rows = Object.entries(byTopic).slice(0, 6);
-    perfList.innerHTML = rows.map(([topic, arr], i) => {
-      const p = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
-      const short = topic.length > 16 ? topic.slice(0, 15) + '…' : topic;
-      return `<div class="perf-row"><span><span class="dot" style="background:${PERF_COLORS[i % PERF_COLORS.length]}"></span>${short}</span><b>${p}%</b></div>`;
-    }).join('');
-  }
+  setAll('.js-st-total', total); setAll('.js-st-avg', avg + '%'); setAll('.js-st-best', best + '%'); setAll('.js-st-streak', '🔥' + streak);
+  document.querySelectorAll('.js-perf-ring').forEach((r) => r.style.setProperty('--p', avg + '%'));
+  setAll('.js-pct', avg + '%');
+  const byTopic = {};
+  hist.forEach((h) => { (byTopic[h.topic] = byTopic[h.topic] || []).push(h.pct); });
+  const rows = Object.entries(byTopic).slice(0, 6);
+  const html = rows.map(([topic, arr], i) => {
+    const p = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+    const short = topic.length > 16 ? topic.slice(0, 15) + '…' : topic;
+    return `<div class="perf-row"><span><span class="dot" style="background:${PERF_COLORS[i % PERF_COLORS.length]}"></span>${short}</span><b>${p}%</b></div>`;
+  }).join('');
+  document.querySelectorAll('.js-perflist').forEach((el) => (el.innerHTML = html));
 }
 function renderHistory() {
   renderStats();
   const hist = loadHistory();
-  const empty = $('recentEmpty');
-  if (empty) empty.hidden = hist.length !== 0;
-  const hint = document.querySelector('.hist-hint');
-  if (hint) hint.hidden = hist.length === 0;
-  const list = $('historyList');
-  if (!list) return;
-  list.innerHTML = '';
-  hist.slice(0, 12).forEach((h, idx) => {
-    const cls = h.pct >= 80 ? 'good' : h.pct >= 50 ? 'mid' : 'low';
-    const item = document.createElement('div');
-    item.className = 'hist-item';
-    item.innerHTML =
-      `<div class="h-left"><div class="h-topic">${h.topic}</div><div class="h-meta">${h.when}</div></div>` +
-      `<div class="h-score ${cls}">${h.pct}%</div>`;
-    attachLongPress(item, () => deleteHistoryItem(idx));
-    list.appendChild(item);
+  showAll('.js-recent-empty', hist.length === 0);
+  document.querySelectorAll('.hist-hint').forEach((h) => (h.hidden = hist.length === 0));
+  document.querySelectorAll('.js-recent').forEach((list) => {
+    list.innerHTML = '';
+    hist.forEach((h, idx) => {
+      const cls = h.pct >= 80 ? 'good' : h.pct >= 50 ? 'mid' : 'low';
+      const item = document.createElement('div');
+      item.className = 'hist-item';
+      item.innerHTML =
+        `<div class="h-left"><div class="h-topic">${h.topic}</div><div class="h-meta">${h.when}</div></div>` +
+        `<div class="h-score ${cls}">${h.pct}%</div>`;
+      attachLongPress(item, () => deleteHistoryItem(idx));
+      list.appendChild(item);
+    });
   });
 }
 
@@ -990,12 +1006,14 @@ async function deleteHistoryItem(idx) {
   renderHistory();
   banner(t('deleted_one'));
 }
-$('clearHistory').onclick = async () => {
-  if (!(await askConfirm(t('clear_confirm')))) return;
-  localStorage.removeItem(HKEY);
-  renderHistory();
-  banner(t('cleared'));
-};
+document.querySelectorAll('.js-clear-all').forEach((btn) => {
+  btn.onclick = async () => {
+    if (!(await askConfirm(t('clear_confirm')))) return;
+    localStorage.removeItem(HKEY);
+    renderHistory();
+    banner(t('cleared'));
+  };
+});
 
 // ---------- Custom pull-to-refresh (app-branded, only on the home screen) ----------
 (function () {
@@ -1062,6 +1080,7 @@ $('negMark').addEventListener('change', () =>
 
 // Dashboard home is the default screen (camera opens on demand via Scan).
 show('capture');
+showPage('home');
 
 // Register service worker (makes the app installable / Play-Store ready).
 // Auto-reload once when a new version takes over, so updates show immediately.
