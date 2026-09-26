@@ -43,9 +43,11 @@
         <button class="nav-item active" data-nav="home">🏠 <span data-i18n="nav_home">Home</span></button>
         <button class="nav-item" data-nav="generate">✨ <span data-i18n="nav_generate">Generate Quiz</span></button>
         <button class="nav-item" data-nav="quizzes">📋 <span data-i18n="nav_quizzes">My Quizzes</span></button>
+        <button class="nav-item" data-nav="bookmarks">⭐ <span data-i18n="nav_bookmarks">Bookmarks</span></button>
         <button class="nav-item" data-nav="material">☁️ <span data-i18n="nav_material">Study Material</span></button>
         <button class="nav-item" data-nav="performance">📊 <span data-i18n="nav_perf">Performance</span></button>
         <button class="nav-item" data-nav="leaderboard">🏆 <span data-i18n="nav_leader">Leaderboard</span></button>
+        <button class="nav-item" data-nav="profile">👤 <span data-i18n="nav_profile">Profile</span></button>
         <button class="nav-item" data-nav="coach">🤖 <span data-i18n="nav_coach">Study Coach</span></button>
         <button class="nav-item" data-nav="settings">⚙️ <span data-i18n="nav_settings">Settings</span></button>
       </nav>
@@ -224,6 +226,48 @@
             </div>
           </div>
 
+          <!-- PROFILE -->
+          <div class="page" data-page="profile">
+            <div class="panel profile-panel">
+              <div class="profile-head">
+                <span class="avatar big">A</span>
+                <div>
+                  <h2 data-i18n="guest">Guest</h2>
+                  <p class="muted" data-i18n="profile_tag">Quiz Enthusiast</p>
+                  <div class="xp-row"><span id="levelLabel">Level 1</span><div class="xp-bar"><div id="xpFill" class="xp-fill"></div></div><small id="xpText">0 / 500 XP</small></div>
+                </div>
+              </div>
+              <div class="stats" style="margin-top:8px">
+                <div class="stat"><b class="js-st-total">0</b><small data-i18n="st_total">Quizzes</small></div>
+                <div class="stat"><b id="pfCorrect">0</b><small data-i18n="pf_correct">Correct</small></div>
+                <div class="stat"><b class="js-st-avg">0%</b><small data-i18n="st_avg">Avg score</small></div>
+                <div class="stat"><b id="pfBadges">0</b><small data-i18n="pf_badges">Badges</small></div>
+              </div>
+            </div>
+            <div class="panel">
+              <h3 data-i18n="badges_title">🏅 Badges</h3>
+              <div id="badgeGrid" class="badge-grid"></div>
+            </div>
+            <div class="panel" id="weakPanel" hidden>
+              <h3 data-i18n="weak_title">📉 Topics to improve</h3>
+              <p class="muted small" data-i18n="weak_sub">Your lower-scoring topics — tap to practise again.</p>
+              <div id="weakList" class="weak-list"></div>
+            </div>
+          </div>
+
+          <!-- BOOKMARKS (flashcards) -->
+          <div class="page" data-page="bookmarks">
+            <div class="panel">
+              <div class="panel-head">
+                <h2 data-i18n="bm_title">⭐ Saved questions</h2>
+                <button id="clearBookmarks" class="link-btn"><span data-i18n="clear_all">Clear all</span></button>
+              </div>
+              <p class="muted small" data-i18n="bm_sub">Tap a card to flip and see the answer.</p>
+              <div id="bookmarkList" class="flash-list"></div>
+              <p id="bookmarkEmpty" class="muted" data-i18n="bm_empty">No saved questions yet. Tap ☆ during a quiz to save one.</p>
+            </div>
+          </div>
+
           <!-- STUDY COACH -->
           <div class="page" data-page="coach">
             <div class="panel">
@@ -299,6 +343,7 @@
               <span id="timer" class="pill">⏱️ 0:00</span>
               <button id="speakBtn" class="pill btn-pill" title="Replay">🔊</button>
               <button id="muteBtn" class="pill btn-pill" title="Narrator on/off">🎙️</button>
+              <button id="bookmarkBtn" class="pill btn-pill" title="Bookmark this question">☆</button>
             </div>
             <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
             <div id="questionArea"></div>

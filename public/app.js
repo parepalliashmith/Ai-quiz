@@ -8,7 +8,14 @@ const I18N = {
     tagline: 'Learn Smarter · Score Higher', guest: 'Guest',
     nav_home: 'Home', nav_generate: 'Generate Quiz', nav_quizzes: 'My Quizzes',
     nav_material: 'Study Material', nav_perf: 'Performance', nav_leader: 'Leaderboard', nav_coach: 'Study Coach', nav_settings: 'Settings',
+    nav_bookmarks: 'Bookmarks', nav_profile: 'Profile',
     leader_title: '🏆 Your best scores', leader_sub: 'Your top quiz results, ranked. Beat your own best!',
+    profile_tag: 'Quiz Enthusiast', pf_correct: 'Correct', pf_badges: 'Badges',
+    badges_title: '🏅 Badges', weak_title: '📉 Topics to improve', weak_sub: 'Your lower-scoring topics — tap to practise again.',
+    bm_title: '⭐ Saved questions', bm_sub: 'Tap a card to flip and see the answer.',
+    bm_empty: 'No saved questions yet. Tap ☆ during a quiz to save one.',
+    bm_saved: 'Question saved to Bookmarks ⭐', bm_removed: 'Removed from Bookmarks.',
+    practise: 'Practise', level: 'Level', tap_reveal: 'Tap to reveal answer',
     side_cta: 'Turn your study material into smart quizzes with AI',
     welcome_title: 'Welcome to AIQUIZ',
     welcome_sub: 'Upload your study material or enter a topic, and let AI create personalized quizzes for you!',
@@ -404,7 +411,7 @@ function askConfirm(msg) {
 }
 
 // ---------- Page navigation (separate views, not scrolling) ----------
-const PAGE_KEYS = { home: 'nav_home', generate: 'nav_generate', quizzes: 'nav_quizzes', performance: 'nav_perf', leaderboard: 'nav_leader', coach: 'nav_coach', settings: 'nav_settings' };
+const PAGE_KEYS = { home: 'nav_home', generate: 'nav_generate', quizzes: 'nav_quizzes', bookmarks: 'nav_bookmarks', performance: 'nav_perf', leaderboard: 'nav_leader', profile: 'nav_profile', coach: 'nav_coach', settings: 'nav_settings' };
 let currentPage = 'home';
 function showPage(name) {
   currentPage = name;
@@ -414,6 +421,8 @@ function showPage(name) {
   if (title && PAGE_KEYS[name]) { title.setAttribute('data-i18n', PAGE_KEYS[name]); title.textContent = t(PAGE_KEYS[name]); }
   if (name === 'quizzes' || name === 'performance') renderHistory();
   if (name === 'leaderboard') renderLeaderboard();
+  if (name === 'profile') renderProfile();
+  if (name === 'bookmarks') renderBookmarks();
   const c = document.querySelector('.content');
   if (c) c.scrollTop = 0;
 }
@@ -743,6 +752,7 @@ function renderQuestion() {
     btn.onclick = () => choose(i, area, q);
     area.appendChild(btn);
   });
+  updateBookmarkBtn();
   if (narratorOn) setTimeout(narrate, 350); // character reads the question aloud
 }
 
@@ -992,6 +1002,124 @@ function renderLeaderboard() {
       <div class="lb-score ${cls}">${h.pct}%<span class="h-meta"> ${h.score}/${h.total}</span></div>
     </div>`;
   }).join('');
+}
+
+// ---------- Bookmarks (saved questions → flashcards) ----------
+const BMKEY = 'aiquiz_bookmarks';
+function loadBookmarks() { try { return JSON.parse(localStorage.getItem(BMKEY) || '[]'); } catch { return []; } }
+function saveBookmarks(arr) { localStorage.setItem(BMKEY, JSON.stringify(arr.slice(0, 200))); }
+function isBookmarked(q) { return loadBookmarks().some((b) => b.question === q.question); }
+function toggleBookmark() {
+  if (!quiz) return;
+  const q = quiz.questions[current];
+  let arr = loadBookmarks();
+  if (arr.some((b) => b.question === q.question)) {
+    arr = arr.filter((b) => b.question !== q.question);
+    banner(t('bm_removed'));
+  } else {
+    arr.unshift({ topic: quiz.topic || 'Quiz', question: q.question, options: q.options, correctIndex: q.correctIndex, explanation: q.explanation || '' });
+    banner(t('bm_saved'));
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
+  saveBookmarks(arr);
+  updateBookmarkBtn();
+}
+function updateBookmarkBtn() {
+  const b = $('bookmarkBtn');
+  if (!b || !quiz) return;
+  const on = isBookmarked(quiz.questions[current]);
+  b.textContent = on ? '★' : '☆';
+  b.classList.toggle('active', on);
+}
+if ($('bookmarkBtn')) $('bookmarkBtn').onclick = toggleBookmark;
+
+function renderBookmarks() {
+  const list = $('bookmarkList');
+  if (!list) return;
+  const bm = loadBookmarks();
+  if ($('bookmarkEmpty')) $('bookmarkEmpty').hidden = bm.length !== 0;
+  list.innerHTML = '';
+  bm.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'flash';
+    const correct = q.options[q.correctIndex];
+    card.innerHTML =
+      `<button class="flash-del" title="Remove">✕</button>` +
+      `<div class="flash-topic">${q.topic}</div>` +
+      `<div class="flash-q">${q.question}</div>` +
+      `<div class="flash-hint">${t('tap_reveal')}</div>` +
+      `<div class="flash-a"><b>${correct}</b>${q.explanation ? `<p>${q.explanation}</p>` : ''}</div>`;
+    card.onclick = (e) => { if (!e.target.classList.contains('flash-del')) card.classList.toggle('open'); };
+    card.querySelector('.flash-del').onclick = (e) => { e.stopPropagation(); const arr = loadBookmarks(); arr.splice(idx, 1); saveBookmarks(arr); renderBookmarks(); };
+    list.appendChild(card);
+  });
+}
+if ($('clearBookmarks')) $('clearBookmarks').onclick = async () => {
+  if (!(await askConfirm(t('clear_confirm')))) return;
+  localStorage.removeItem(BMKEY); renderBookmarks(); banner(t('cleared'));
+};
+
+// ---------- Profile: level, XP, badges, weak topics ----------
+const BADGES = [
+  { id: 'first', icon: '🎓', name: 'First Quiz', test: (h, s) => s.total >= 1 },
+  { id: 'perfect', icon: '💯', name: 'Perfect Score', test: (h) => h.some((x) => x.pct === 100) },
+  { id: 'sharp', icon: '🎯', name: 'Sharp Mind', test: (h) => h.some((x) => x.pct >= 90) },
+  { id: 'consistent', icon: '📚', name: 'Consistent', test: (h, s) => s.total >= 5 },
+  { id: 'master', icon: '🏆', name: 'Quiz Master', test: (h, s) => s.total >= 15 },
+  { id: 'century', icon: '💪', name: 'Centurion', test: (h, s) => s.questions >= 100 },
+  { id: 'fire', icon: '🔥', name: 'On Fire', test: (h, s) => s.streak >= 3 },
+  { id: 'unstoppable', icon: '⚡', name: 'Unstoppable', test: (h, s) => s.streak >= 7 },
+];
+function profileSummary() {
+  const hist = loadHistory();
+  const total = hist.length;
+  const correct = hist.reduce((a, h) => a + (h.score || 0), 0);
+  const questions = hist.reduce((a, h) => a + (h.total || 0), 0);
+  const avg = total ? Math.round(hist.reduce((a, h) => a + h.pct, 0) / total) : 0;
+  const days = new Set(hist.map((h) => h.day).filter(Boolean));
+  let streak = 0; const d = new Date(); const iso = (x) => x.toISOString().slice(0, 10);
+  if (!days.has(iso(d))) d.setDate(d.getDate() - 1);
+  while (days.has(iso(d))) { streak++; d.setDate(d.getDate() - 1); }
+  const xp = correct * 10;
+  const level = Math.floor(xp / 500) + 1;
+  const xpInto = xp % 500;
+  return { hist, total, correct, questions, avg, streak, xp, level, xpInto };
+}
+function renderProfile() {
+  const s = profileSummary();
+  if ($('levelLabel')) $('levelLabel').textContent = `${t('level')} ${s.level}`;
+  if ($('xpFill')) $('xpFill').style.width = (s.xpInto / 500 * 100) + '%';
+  if ($('xpText')) $('xpText').textContent = `${s.xpInto} / 500 XP`;
+  if ($('pfCorrect')) $('pfCorrect').textContent = s.correct;
+  renderStats();
+  const earned = BADGES.filter((b) => b.test(s.hist, s));
+  if ($('pfBadges')) $('pfBadges').textContent = earned.length;
+  const grid = $('badgeGrid');
+  if (grid) grid.innerHTML = BADGES.map((b) => {
+    const got = earned.some((e) => e.id === b.id);
+    return `<div class="badge${got ? '' : ' locked'}"><span class="badge-ico">${b.icon}</span><small>${b.name}</small></div>`;
+  }).join('');
+  // weak topics: avg per topic < 60%, lowest first
+  const byTopic = {};
+  s.hist.forEach((h) => { (byTopic[h.topic] = byTopic[h.topic] || []).push(h.pct); });
+  const weak = Object.entries(byTopic)
+    .map(([topic, arr]) => ({ topic, avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) }))
+    .filter((x) => x.avg < 60).sort((a, b) => a.avg - b.avg).slice(0, 5);
+  if ($('weakPanel')) $('weakPanel').hidden = weak.length === 0;
+  const wl = $('weakList');
+  if (wl) {
+    wl.innerHTML = '';
+    weak.forEach((w) => {
+      const row = document.createElement('div');
+      row.className = 'weak-row';
+      row.innerHTML = `<span class="weak-topic">${w.topic}</span><span class="weak-pct">${w.avg}%</span><button class="btn primary small">${t('practise')}</button>`;
+      row.querySelector('button').onclick = () => {
+        show('capture'); showPage('generate');
+        $('topicInput').value = w.topic; syncGenerate(); $('topicInput').focus();
+      };
+      wl.appendChild(row);
+    });
+  }
 }
 
 // Long-press (or long-click) to delete a single history entry.
