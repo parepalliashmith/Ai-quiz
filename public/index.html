@@ -45,6 +45,7 @@
         <button class="nav-item" data-nav="quizzes">📋 <span data-i18n="nav_quizzes">My Quizzes</span></button>
         <button class="nav-item" data-nav="material">☁️ <span data-i18n="nav_material">Study Material</span></button>
         <button class="nav-item" data-nav="performance">📊 <span data-i18n="nav_perf">Performance</span></button>
+        <button class="nav-item" data-nav="leaderboard">🏆 <span data-i18n="nav_leader">Leaderboard</span></button>
         <button class="nav-item" data-nav="coach">🤖 <span data-i18n="nav_coach">Study Coach</span></button>
         <button class="nav-item" data-nav="settings">⚙️ <span data-i18n="nav_settings">Settings</span></button>
       </nav>
@@ -208,6 +209,19 @@
               </div>
             </div>
             <div class="panel js-perf-empty"><p class="muted" data-i18n="recent_empty">No quizzes yet — create your first one!</p></div>
+          </div>
+
+          <!-- LEADERBOARD (personal best scores) -->
+          <div class="page" data-page="leaderboard">
+            <div class="panel">
+              <div class="panel-head">
+                <h2 data-i18n="leader_title">🏆 Your best scores</h2>
+                <button class="link-btn js-clear-all"><span data-i18n="clear_all">Clear all</span></button>
+              </div>
+              <p class="muted small" data-i18n="leader_sub">Your top quiz results, ranked. Beat your own best!</p>
+              <div id="leaderList" class="leader-list"></div>
+              <p id="leaderEmpty" class="muted" data-i18n="recent_empty">No quizzes yet — create your first one!</p>
+            </div>
           </div>
 
           <!-- STUDY COACH -->

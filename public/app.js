@@ -7,7 +7,8 @@ const I18N = {
   english: {
     tagline: 'Learn Smarter · Score Higher', guest: 'Guest',
     nav_home: 'Home', nav_generate: 'Generate Quiz', nav_quizzes: 'My Quizzes',
-    nav_material: 'Study Material', nav_perf: 'Performance', nav_coach: 'Study Coach', nav_settings: 'Settings',
+    nav_material: 'Study Material', nav_perf: 'Performance', nav_leader: 'Leaderboard', nav_coach: 'Study Coach', nav_settings: 'Settings',
+    leader_title: '🏆 Your best scores', leader_sub: 'Your top quiz results, ranked. Beat your own best!',
     side_cta: 'Turn your study material into smart quizzes with AI',
     welcome_title: 'Welcome to AIQUIZ',
     welcome_sub: 'Upload your study material or enter a topic, and let AI create personalized quizzes for you!',
@@ -320,13 +321,13 @@ $('langSwitch').onchange = (e) => {
 };
 
 // ---------- Theme ----------
-let theme = localStorage.getItem('aiquiz_theme') || 'light';
+let theme = localStorage.getItem('aiquiz_theme') || 'dark';
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
   $('themeToggle').textContent = theme === 'light' ? '🌙' : '☀️';
   if ($('setDark')) $('setDark').checked = theme === 'dark';
   // Tint the phone's status/navigation bars to match the app (seamless, native feel).
-  const color = theme === 'dark' ? '#07081a' : '#e7ebfa';
+  const color = theme === 'dark' ? '#0a0d18' : '#e7ebfa';
   let m = document.querySelector('meta[name="theme-color"]');
   if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
   m.setAttribute('content', color);
@@ -403,7 +404,7 @@ function askConfirm(msg) {
 }
 
 // ---------- Page navigation (separate views, not scrolling) ----------
-const PAGE_KEYS = { home: 'nav_home', generate: 'nav_generate', quizzes: 'nav_quizzes', performance: 'nav_perf', coach: 'nav_coach', settings: 'nav_settings' };
+const PAGE_KEYS = { home: 'nav_home', generate: 'nav_generate', quizzes: 'nav_quizzes', performance: 'nav_perf', leaderboard: 'nav_leader', coach: 'nav_coach', settings: 'nav_settings' };
 let currentPage = 'home';
 function showPage(name) {
   currentPage = name;
@@ -412,6 +413,7 @@ function showPage(name) {
   const title = $('pageTitle');
   if (title && PAGE_KEYS[name]) { title.setAttribute('data-i18n', PAGE_KEYS[name]); title.textContent = t(PAGE_KEYS[name]); }
   if (name === 'quizzes' || name === 'performance') renderHistory();
+  if (name === 'leaderboard') renderLeaderboard();
   const c = document.querySelector('.content');
   if (c) c.scrollTop = 0;
 }
@@ -971,6 +973,25 @@ function renderHistory() {
       list.appendChild(item);
     });
   });
+}
+
+// Personal leaderboard — your own quiz results ranked by score.
+function renderLeaderboard() {
+  const list = $('leaderList');
+  if (!list) return;
+  const hist = loadHistory().slice().sort((a, b) => b.pct - a.pct || b.score - a.score);
+  const empty = $('leaderEmpty');
+  if (empty) empty.hidden = hist.length !== 0;
+  const medals = ['🥇', '🥈', '🥉'];
+  list.innerHTML = hist.slice(0, 20).map((h, i) => {
+    const cls = h.pct >= 80 ? 'good' : h.pct >= 50 ? 'mid' : 'low';
+    const rank = medals[i] || `<span class="lb-num">${i + 1}</span>`;
+    return `<div class="lb-row${i < 3 ? ' top' : ''}">
+      <div class="lb-rank">${rank}</div>
+      <div class="lb-mid"><div class="lb-topic">${h.topic}</div><div class="h-meta">${h.when}</div></div>
+      <div class="lb-score ${cls}">${h.pct}%<span class="h-meta"> ${h.score}/${h.total}</span></div>
+    </div>`;
+  }).join('');
 }
 
 // Long-press (or long-click) to delete a single history entry.
