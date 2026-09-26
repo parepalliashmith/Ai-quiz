@@ -212,6 +212,8 @@ const Mascot = {
   startTalk() {
     if (!this.el) return;
     this.el.classList.add('talking');
+    const b = document.getElementById('tutorBubble');
+    if (b && this.bubbleText) { b.textContent = this.bubbleText; b.hidden = false; }
     clearInterval(this.talkTimer);
     const mg = document.getElementById('mouthG');
     this.talkTimer = setInterval(() => {
@@ -221,6 +223,8 @@ const Mascot = {
   stopTalk() {
     if (!this.el) return;
     this.el.classList.remove('talking');
+    const b = document.getElementById('tutorBubble');
+    if (b) b.hidden = true;
     clearInterval(this.talkTimer);
     const mg = document.getElementById('mouthG');
     if (mg) mg.style.transform = 'scaleY(0.08)';
@@ -265,6 +269,7 @@ function narrate() {
   checkVoice();
   const q = quiz.questions[current];
   const text = `${q.question}. ${q.options.map((o, i) => `${i + 1}. ${o}`).join('. ')}`;
+  Mascot.bubbleText = q.question; // show the question in the speech bubble while reading
   Mascot.speak(text);
 }
 
