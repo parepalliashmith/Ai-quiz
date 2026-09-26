@@ -22,6 +22,7 @@ const I18N = {
     perf_title: 'Your Performance', perf_overall: 'Overall', motiv: 'Small steps every day lead to big results!',
     coach_title: 'Study Coach — tips to score higher', read_full: 'Read the full study guide →',
     set_theme: 'Dark mode', set_lang: 'App language', set_narrator: 'Narrator (read aloud)', set_clear: 'Clear all my data',
+    set_avatar: 'Quiz avatar', avatar_photo: 'Realistic photo', avatar_cartoon: 'Animated (lip-sync)', avatar_changed: 'Avatar changed! Start a quiz to see it.',
     hero_title: 'Turn any page into a quiz',
     hero_sub: 'Scan your books or notes, or just type a topic — AIQUIZ builds exam-style questions so you learn faster. Made for competitive exam aspirants.',
     step1_t: 'Scan or type', step1_d: 'Capture pages or enter a topic',
@@ -175,25 +176,49 @@ const I18N = {
 // BCP-47 codes for speech synthesis.
 const SPEECH_LANG = { english: 'en-IN', telugu: 'te-IN', hindi: 'hi-IN' };
 
-// ---------- AI narrator (photo avatar) ----------
+// ---------- AI narrator (photo avatar OR animated lip-sync cartoon) ----------
+let avatarMode = localStorage.getItem('aiquiz_avatar') || 'photo';
 const Mascot = {
-  wrap: null,
-  init() { this.wrap = document.querySelector('.avatar-anchor'); },
+  photo: null, cartoon: null, talkTimer: null,
+  init() {
+    this.photo = document.getElementById('avatarPhoto');
+    this.cartoon = document.getElementById('avatarCartoon');
+    applyAvatar(avatarMode);
+  },
   blink() {},
+  active() { return avatarMode === 'cartoon' ? this.cartoon : this.photo; },
   expr(state) {
-    if (!this.wrap) return;
-    this.wrap.classList.remove('happy', 'sad');
-    if (state === 'happy' || state === 'sad') this.wrap.classList.add(state);
+    const el = this.active();
+    if (el) { el.classList.remove('happy', 'sad'); if (state === 'happy' || state === 'sad') el.classList.add(state); }
+    if (avatarMode === 'cartoon') {
+      const s = document.getElementById('cSmile'), bL = document.getElementById('cBrowL'), bR = document.getElementById('cBrowR');
+      if (!s) return;
+      if (state === 'happy') { s.setAttribute('d', 'M44 80 Q60 96 76 80'); bL.setAttribute('y1', '44'); bL.setAttribute('y2', '44'); bR.setAttribute('y1', '44'); bR.setAttribute('y2', '44'); }
+      else if (state === 'sad') { s.setAttribute('d', 'M48 90 Q60 78 72 90'); bL.setAttribute('y1', '44'); bL.setAttribute('y2', '50'); bR.setAttribute('y1', '50'); bR.setAttribute('y2', '44'); }
+      else { s.setAttribute('d', 'M48 82 Q60 90 72 82'); bL.setAttribute('y1', '46'); bL.setAttribute('y2', '46'); bR.setAttribute('y1', '46'); bR.setAttribute('y2', '46'); }
+    }
   },
   startTalk() {
-    if (this.wrap) this.wrap.classList.add('talking');
+    const el = this.active();
+    if (el) el.classList.add('talking');
     const b = document.getElementById('tutorBubble');
     if (b && this.bubbleText) { b.textContent = this.bubbleText; b.hidden = false; }
+    if (avatarMode === 'cartoon') {
+      clearInterval(this.talkTimer);
+      const mg = document.getElementById('cMouthG');
+      this.talkTimer = setInterval(() => {
+        if (mg) mg.style.transform = `scaleY(${(0.15 + Math.random() * 0.85).toFixed(2)})`;
+      }, 95);
+    }
   },
   stopTalk() {
-    if (this.wrap) this.wrap.classList.remove('talking');
+    if (this.photo) this.photo.classList.remove('talking');
+    if (this.cartoon) this.cartoon.classList.remove('talking');
     const b = document.getElementById('tutorBubble');
     if (b) b.hidden = true;
+    clearInterval(this.talkTimer);
+    const mg = document.getElementById('cMouthG');
+    if (mg) mg.style.transform = 'scaleY(0.08)';
   },
   speak(text) {
     if (!('speechSynthesis' in window) || !text) return;
@@ -201,11 +226,12 @@ const Mascot = {
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = SPEECH_LANG[$('quizLang') ? $('quizLang').value : lang] || SPEECH_LANG[lang] || 'en-IN';
-    u.rate = 0.98; u.pitch = 1.05;
+    u.rate = 0.98; u.pitch = avatarMode === 'cartoon' ? 1.15 : 1.05;
     u.onstart = () => this.startTalk();
+    u.onboundary = () => { if (avatarMode === 'cartoon') { const mg = document.getElementById('cMouthG'); if (mg) mg.style.transform = 'scaleY(0.9)'; } };
     u.onend = () => this.stopTalk();
     u.onerror = () => this.stopTalk();
-    this.startTalk(); // some browsers fire onstart late
+    this.startTalk();
     synth.speak(u);
   },
   stop() {
@@ -213,6 +239,13 @@ const Mascot = {
     this.stopTalk();
   },
 };
+function applyAvatar(mode) {
+  avatarMode = mode === 'cartoon' ? 'cartoon' : 'photo';
+  localStorage.setItem('aiquiz_avatar', avatarMode);
+  if (Mascot.photo) Mascot.photo.hidden = avatarMode !== 'photo';
+  if (Mascot.cartoon) Mascot.cartoon.hidden = avatarMode !== 'cartoon';
+  if ($('setAvatar')) $('setAvatar').value = avatarMode;
+}
 
 let narratorOn = localStorage.getItem('aiquiz_narrator') !== 'off';
 let voiceWarned = false;
@@ -752,7 +785,7 @@ function toggleNarration() {
   else narrate();
 }
 $('speakBtn').onclick = toggleNarration;
-$('mascot').onclick = toggleNarration;
+$('tutor').onclick = toggleNarration;
 
 // Narrator on/off (auto-read each question).
 function updateMute() {
@@ -772,6 +805,7 @@ $('muteBtn').onclick = () => { setNarrator(!narratorOn); if (narratorOn) narrate
 if ($('setNarrator')) $('setNarrator').onchange = (e) => setNarrator(e.target.checked);
 if ($('setDark')) $('setDark').onchange = (e) => { theme = e.target.checked ? 'dark' : 'light'; localStorage.setItem('aiquiz_theme', theme); applyTheme(); };
 if ($('setLang')) $('setLang').onchange = (e) => { lang = e.target.value; localStorage.setItem('aiquiz_lang', lang); applyLang(); renderHistory(); };
+if ($('setAvatar')) $('setAvatar').onchange = (e) => { applyAvatar(e.target.value); banner(t('avatar_changed')); };
 
 $('skipBtn').onclick = () => {
   const q = quiz.questions[current];

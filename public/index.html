@@ -232,6 +232,12 @@
                 <select id="setLang" class="set-select"><option value="english">English</option><option value="telugu">తెలుగు</option><option value="hindi">हिन्दी</option></select>
               </div>
               <div class="set-row"><span data-i18n="set_narrator">Narrator (read aloud)</span><label class="toggle"><input type="checkbox" id="setNarrator" checked /><span class="slider"></span></label></div>
+              <div class="set-row"><span data-i18n="set_avatar">Quiz avatar</span>
+                <select id="setAvatar" class="set-select">
+                  <option value="photo" data-i18n="avatar_photo">Realistic photo</option>
+                  <option value="cartoon" data-i18n="avatar_cartoon">Animated (lip-sync)</option>
+                </select>
+              </div>
               <div class="set-row"><span data-i18n="set_clear">Clear all my data</span><button class="btn ghost small js-clear-all"><span data-i18n="clear_all">Clear all</span></button></div>
               <p class="home-info-links"><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="faq.html">FAQ</a></p>
               <p class="muted small">AIQUIZ · v1.0</p>
@@ -250,9 +256,24 @@
         <!-- QUIZ -->
         <section id="quiz" class="screen" hidden>
           <div id="tutor" class="tutor" title="Tap to replay">
-            <div class="avatar-anchor">
+            <div class="avatar-anchor" id="avatarPhoto">
               <img id="mascot" src="tutor.jpg?v=1" alt="AI narrator" />
               <span class="speak-bars"><i></i><i></i><i></i><i></i></span>
+            </div>
+            <div class="avatar-cartoon" id="avatarCartoon" hidden>
+              <svg id="mascotC" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+                <rect x="16" y="20" width="88" height="82" rx="30" fill="var(--card2)" stroke="var(--primary)" stroke-width="3"/>
+                <path d="M20 40 Q60 6 100 40" fill="#3a2a20"/>
+                <rect x="8" y="50" width="8" height="20" rx="4" fill="var(--primary)"/>
+                <rect x="104" y="50" width="8" height="20" rx="4" fill="var(--primary)"/>
+                <line id="cBrowL" x1="34" y1="46" x2="50" y2="46" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+                <line id="cBrowR" x1="70" y1="46" x2="86" y2="46" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+                <g id="cEyes"><ellipse id="cEyeL" cx="44" cy="58" rx="6.5" ry="8.5" fill="var(--text)"/><ellipse id="cEyeR" cx="76" cy="58" rx="6.5" ry="8.5" fill="var(--text)"/></g>
+                <circle cx="36" cy="76" r="5" fill="#f08a8a" opacity=".4"/>
+                <circle cx="84" cy="76" r="5" fill="#f08a8a" opacity=".4"/>
+                <path id="cSmile" d="M48 82 Q60 90 72 82" fill="none" stroke="var(--text)" stroke-width="3.5" stroke-linecap="round"/>
+                <g id="cMouthG"><ellipse id="cMouthOpen" cx="60" cy="84" rx="10" ry="7" fill="#c0392b"/></g>
+              </svg>
             </div>
             <div id="tutorBubble" class="tutor-bubble" hidden></div>
           </div>
