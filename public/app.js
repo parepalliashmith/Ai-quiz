@@ -175,59 +175,25 @@ const I18N = {
 // BCP-47 codes for speech synthesis.
 const SPEECH_LANG = { english: 'en-IN', telugu: 'te-IN', hindi: 'hi-IN' };
 
-// ---------- AI narrator character (lip-sync + expressions) ----------
+// ---------- AI narrator (photo avatar) ----------
 const Mascot = {
-  el: null, talkTimer: null, blinkTimer: null,
-  init() {
-    this.el = document.getElementById('mascot');
-    if (!this.el) return;
-    this.blinkTimer = setInterval(() => this.blink(), 3600);
-  },
-  blink() {
-    if (!this.el || this.el.classList.contains('talking')) return;
-    this.el.classList.add('blink');
-    setTimeout(() => this.el && this.el.classList.remove('blink'), 150);
-  },
+  wrap: null,
+  init() { this.wrap = document.querySelector('.avatar-anchor'); },
+  blink() {},
   expr(state) {
-    if (!this.el) return;
-    this.el.classList.remove('happy', 'sad');
-    const smile = document.getElementById('smile');
-    const bL = document.getElementById('browL'), bR = document.getElementById('browR');
-    if (state === 'happy') {
-      this.el.classList.add('happy');
-      smile.setAttribute('d', 'M42 74 Q60 94 78 74');
-      bL.setAttribute('y1', '40'); bL.setAttribute('y2', '40');
-      bR.setAttribute('y1', '40'); bR.setAttribute('y2', '40');
-    } else if (state === 'sad') {
-      this.el.classList.add('sad');
-      smile.setAttribute('d', 'M46 88 Q60 74 74 88');
-      bL.setAttribute('y1', '40'); bL.setAttribute('y2', '46');   // angled down (worried)
-      bR.setAttribute('y1', '46'); bR.setAttribute('y2', '40');
-    } else { // idle
-      smile.setAttribute('d', 'M46 78 Q60 88 74 78');
-      bL.setAttribute('y1', '42'); bL.setAttribute('y2', '42');
-      bR.setAttribute('y1', '42'); bR.setAttribute('y2', '42');
-    }
+    if (!this.wrap) return;
+    this.wrap.classList.remove('happy', 'sad');
+    if (state === 'happy' || state === 'sad') this.wrap.classList.add(state);
   },
   startTalk() {
-    if (!this.el) return;
-    this.el.classList.add('talking');
+    if (this.wrap) this.wrap.classList.add('talking');
     const b = document.getElementById('tutorBubble');
     if (b && this.bubbleText) { b.textContent = this.bubbleText; b.hidden = false; }
-    clearInterval(this.talkTimer);
-    const mg = document.getElementById('mouthG');
-    this.talkTimer = setInterval(() => {
-      mg.style.transform = `scaleY(${(0.15 + Math.random() * 0.85).toFixed(2)})`;
-    }, 95);
   },
   stopTalk() {
-    if (!this.el) return;
-    this.el.classList.remove('talking');
+    if (this.wrap) this.wrap.classList.remove('talking');
     const b = document.getElementById('tutorBubble');
     if (b) b.hidden = true;
-    clearInterval(this.talkTimer);
-    const mg = document.getElementById('mouthG');
-    if (mg) mg.style.transform = 'scaleY(0.08)';
   },
   speak(text) {
     if (!('speechSynthesis' in window) || !text) return;
@@ -235,12 +201,8 @@ const Mascot = {
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = SPEECH_LANG[$('quizLang') ? $('quizLang').value : lang] || SPEECH_LANG[lang] || 'en-IN';
-    u.rate = 0.98; u.pitch = 1.15;
+    u.rate = 0.98; u.pitch = 1.05;
     u.onstart = () => this.startTalk();
-    u.onboundary = () => {
-      const mg = document.getElementById('mouthG');
-      if (mg) mg.style.transform = 'scaleY(0.9)';
-    };
     u.onend = () => this.stopTalk();
     u.onerror = () => this.stopTalk();
     this.startTalk(); // some browsers fire onstart late

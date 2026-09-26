@@ -225,20 +225,29 @@ a { color: var(--primary); }
 .small-note { font-size: 12.5px; margin-top: 10px; opacity: .85; }
 .muted { color: var(--muted); }
 
-/* mascot */
+/* AI narrator — photo avatar */
 .tutor { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 18px; flex-wrap: wrap; }
-#mascot { width: 122px; height: auto; cursor: pointer; flex: 0 0 auto; filter: drop-shadow(0 8px 18px rgba(109,94,252,.28)); }
-#mascot.talking { position: relative; }
-#mascot.talking { animation: bob 1.1s ease-in-out infinite; }
-@keyframes bob { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-3px);} }
-#mascot.happy { animation: hop .5s ease; }
-@keyframes hop { 0%,100% { transform: translateY(0);} 30% { transform: translateY(-9px);} 60% { transform: translateY(0);} }
-#mascot.sad { animation: shake .5s ease; }
-@keyframes shake { 0%,100% { transform: translateX(0);} 25% { transform: translateX(-4px);} 75% { transform: translateX(4px);} }
-#mouthG { transform-origin: 60px 80px; transform: scaleY(0.08); transition: transform .08s ease; }
-#mascot.talking #smile { opacity: 0; }
-#eyeL,#eyeR { transition: transform .12s ease; transform-origin: center; }
-#mascot.blink #eyeL, #mascot.blink #eyeR { transform: scaleY(0.1); }
+.avatar-anchor {
+  position: relative; width: 108px; height: 108px; flex: 0 0 auto; border-radius: 50%;
+  padding: 4px; background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 10px 26px rgba(109,94,252,.35);
+}
+.avatar-anchor #mascot { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; cursor: pointer; border: 3px solid var(--panel); }
+/* pulsing speaking ring */
+.avatar-anchor::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 3px solid var(--primary);
+  opacity: 0; pointer-events: none;
+}
+.avatar-anchor.talking::after { animation: speakPulse 1.2s ease-out infinite; }
+@keyframes speakPulse { 0% { opacity: .55; transform: scale(1); } 100% { opacity: 0; transform: scale(1.25); } }
+.avatar-anchor.happy { box-shadow: 0 10px 26px rgba(22,193,166,.5); }
+.avatar-anchor.sad { box-shadow: 0 10px 26px rgba(225,29,72,.4); }
+/* sound-wave bars while speaking */
+.speak-bars { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); display: none; gap: 3px; padding: 4px 8px; background: var(--primary); border-radius: 99px; box-shadow: 0 4px 10px rgba(0,0,0,.25); }
+.avatar-anchor.talking .speak-bars { display: flex; }
+.speak-bars i { width: 3px; height: 10px; background: #fff; border-radius: 2px; animation: sw .6s ease-in-out infinite; }
+.speak-bars i:nth-child(2) { animation-delay: .15s; } .speak-bars i:nth-child(3) { animation-delay: .3s; } .speak-bars i:nth-child(4) { animation-delay: .45s; }
+@keyframes sw { 0%,100% { height: 5px; } 50% { height: 14px; } }
 .tutor-bubble {
   position: relative; max-width: 340px; padding: 14px 18px; border-radius: 18px;
   background: color-mix(in srgb, var(--primary) 12%, var(--panel)); border: 1px solid var(--line);
