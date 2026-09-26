@@ -205,10 +205,10 @@ const Mascot = {
     if (b && this.bubbleText) { b.textContent = this.bubbleText; b.hidden = false; }
     if (avatarMode === 'cartoon') {
       clearInterval(this.talkTimer);
-      const mg = document.getElementById('cMouthG');
+      const cm = document.getElementById('cMouthG');
       this.talkTimer = setInterval(() => {
-        if (mg) mg.style.transform = `scaleY(${(0.15 + Math.random() * 0.85).toFixed(2)})`;
-      }, 95);
+        if (cm) cm.style.transform = `scaleY(${(0.12 + Math.random() * 0.88).toFixed(2)})`;
+      }, 90);
     }
   },
   stopTalk() {
@@ -217,8 +217,8 @@ const Mascot = {
     const b = document.getElementById('tutorBubble');
     if (b) b.hidden = true;
     clearInterval(this.talkTimer);
-    const mg = document.getElementById('cMouthG');
-    if (mg) mg.style.transform = 'scaleY(0.08)';
+    const cm = document.getElementById('cMouthG');
+    if (cm) cm.style.transform = 'scaleY(0.08)';
   },
   speak(text) {
     if (!('speechSynthesis' in window) || !text) return;
