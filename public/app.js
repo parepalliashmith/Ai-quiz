@@ -383,12 +383,29 @@ function initAds(sectionName) {
   });
 }
 
-function banner(msg) {
+function banner(msg, type) {
   const b = $('banner');
+  b.className = 'banner' + (type ? ' ' + type : '');
   b.textContent = msg;
   b.hidden = false;
+  // restart slide-in animation
+  b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
   clearTimeout(banner._t);
-  banner._t = setTimeout(() => (b.hidden = true), 4500);
+  banner._t = setTimeout(() => (b.hidden = true), 4200);
+}
+
+// Animate a number counting up (respects reduced-motion).
+function countUp(el, to, suffix = '') {
+  if (!el) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = to + suffix; return; }
+  const dur = 700, start = performance.now();
+  function step(now) {
+    const p = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(to * eased) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
 // Custom in-app confirm dialog (replaces the browser's native popup).
@@ -688,7 +705,7 @@ async function runGenerate() {
     if (!r.ok) throw new Error(data.error || 'Failed to generate quiz.');
     startQuiz(data);
   } catch (e) {
-    banner(e.message);
+    banner(e.message, 'error');
     show('capture');
   }
 }
@@ -748,7 +765,8 @@ function renderQuestion() {
   q.options.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'opt';
-    btn.innerHTML = `${opt}<span class="mark"></span>`;
+    btn.setAttribute('aria-label', `Option ${String.fromCharCode(65 + i)}: ${opt}`);
+    btn.innerHTML = `<span class="opt-key">${String.fromCharCode(65 + i)}</span><span class="opt-txt">${opt}</span><span class="mark"></span>`;
     btn.onclick = () => choose(i, area, q);
     area.appendChild(btn);
   });
@@ -831,6 +849,21 @@ $('nextBtn').onclick = () => {
   else renderQuestion();
 };
 
+// Keyboard: A–D / 1–4 to answer, Enter for next/see-results (desktop + a11y).
+document.addEventListener('keydown', (e) => {
+  if ($('quiz').hidden) return;
+  const tgt = e.target;
+  if (tgt && typeof tgt.matches === 'function' && tgt.matches('input, textarea, select')) return;
+  const opts = document.querySelectorAll('#questionArea .opt');
+  if (!opts.length) return;
+  if (e.key === 'Enter') { if (!$('nextBtn').disabled) { e.preventDefault(); $('nextBtn').click(); } return; }
+  if (opts[0].disabled) return; // already answered
+  let idx = -1;
+  if (/^[1-9]$/.test(e.key)) idx = +e.key - 1;
+  else { const k = e.key.toLowerCase(); if (k >= 'a' && k <= 'z') idx = k.charCodeAt(0) - 97; }
+  if (idx >= 0 && idx < opts.length) { e.preventDefault(); opts[idx].click(); }
+});
+
 
 function showResults() {
   clearInterval(timerId);
@@ -839,7 +872,7 @@ function showResults() {
   const total = quiz.questions.length;
   const pct = Math.round((score / total) * 100);
   $('scoreRing').style.setProperty('--p', `${pct}%`);
-  $('scoreText').textContent = `${pct}%`;
+  countUp($('scoreText'), pct, '%'); // animated count-up
   $('scoreHeadline').textContent = pct >= 80 ? t('excellent') : pct >= 50 ? t('good') : t('keep');
   let detail = `${t('scored')(score, total)}  ⏱️ ${fmtTime(elapsed)}`;
   if ($('negMark').checked) {
@@ -1018,7 +1051,7 @@ function toggleBookmark() {
     banner(t('bm_removed'));
   } else {
     arr.unshift({ topic: quiz.topic || 'Quiz', question: q.question, options: q.options, correctIndex: q.correctIndex, explanation: q.explanation || '' });
-    banner(t('bm_saved'));
+    banner(t('bm_saved'), 'success');
     if (navigator.vibrate) navigator.vibrate(15);
   }
   saveBookmarks(arr);
