@@ -12,7 +12,7 @@ const I18N = {
     powered_ai: 'Powered by AI', hero_l1: 'Smarter Quizzes.', hero_l2: 'Bigger Dreams.',
     hero_sub2: 'Challenge yourself with AI-generated quizzes on any topic. Learn, improve and unlock your full potential.',
     hp1: 'AI Generated Questions', hp2: 'Any Topic or Subject', hp3: 'Track Your Progress', hp4: 'Earn Badges & Rewards',
-    start_quiz: 'Start Quiz', popular_cat: '⚡ Popular Categories', tap_start: 'Tap to start',
+    start_quiz: 'Start Quiz', popular_cat: '⚡ Popular Categories', tap_start: 'Tap to start', share_app: 'Share',
     leader_title: '🏆 Your best scores', leader_sub: 'Your top quiz results, ranked. Beat your own best!',
     quizzes_intro: 'Every quiz you take is saved here with its score, date and topic — so you can revisit any subject and see how you are improving over time. Your history stays private on this device.',
     perf_intro: 'See your overall accuracy, your best score, your current daily streak and how you perform across different topics — all calculated from your own quiz history.',
@@ -513,6 +513,15 @@ if ($('closeCam')) $('closeCam').onclick = () => { stopCamera(); $('cameraWrap')
 document.querySelectorAll('[data-action="startquiz"], .js-go-generate').forEach((b) => {
   b.onclick = () => { show('capture'); showPage('generate'); $('topicInput').focus(); };
 });
+
+// Share the app (helps organic growth — every user can invite friends).
+function shareApp() {
+  const text = 'AIQUIZ 🧠 — turn any page or topic into an instant quiz! Free · English, Telugu & Hindi. Try it:';
+  const url = location.origin;
+  if (navigator.share) navigator.share({ title: 'AIQUIZ', text, url }).catch(() => {});
+  else navigator.clipboard.writeText(text + ' ' + url).then(() => banner(t('copied'), 'success')).catch(() => {});
+}
+if ($('shareApp')) $('shareApp').onclick = shareApp;
 // Popular category → generate a quiz on that topic right away.
 document.querySelectorAll('.cat').forEach((c) => {
   c.onclick = () => {

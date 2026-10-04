@@ -31,6 +31,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "AIQUIZ",
+    "url": "https://ai-quiz-jfzn.onrender.com/",
+    "description": "AIQUIZ turns any page, note or topic into an instant AI-generated practice quiz. Built for competitive exam aspirants. Free, in English, Telugu and Hindi.",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Any",
+    "inLanguage": ["en", "te", "hi"],
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+    "author": { "@type": "Organization", "name": "AIQUIZ" }
+  }
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -72,6 +87,7 @@
           <select id="langSwitch" class="lang-switch" title="Language">
             <option value="english">EN</option><option value="telugu">తెలుగు</option><option value="hindi">हिन्दी</option>
           </select>
+          <button id="shareApp" class="btn primary small" title="Share AIQUIZ">📤 <span data-i18n="share_app">Share</span></button>
           <button id="themeToggle" class="icon-btn" title="Theme">🌙</button>
           <div class="profile"><span class="avatar">A</span></div>
         </div>
