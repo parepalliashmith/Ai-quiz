@@ -9,7 +9,8 @@
   --red: #e11d48;
   --red-bg: rgba(225,29,72,.10);
   --font-ui: 'Plus Jakarta Sans','Noto Sans Telugu','Noto Sans Devanagari',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --font-display: 'Sora','Plus Jakarta Sans','Noto Sans Telugu','Noto Sans Devanagari',sans-serif;
+  --font-display: 'Space Grotesk','Plus Jakarta Sans','Noto Sans Telugu','Noto Sans Devanagari',sans-serif;
+  --font-mono: 'JetBrains Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 html[data-theme="light"] {
   --bg: #f3f4fb; --panel: #ffffff; --side: #ffffff; --card2: #f5f5fc;
@@ -35,6 +36,13 @@ body {
   -webkit-font-smoothing: antialiased; letter-spacing: -.01em;
 }
 h1,h2,h3,b { font-family: var(--font-display); }
+/* numbers in JetBrains Mono — timers, scores, XP, percentages, counters */
+#timer, #qCounter, #liveScore, #scoreText, .score-ring span,
+.stat b, .js-st-total, .js-st-avg, .js-st-best, .js-st-streak,
+.lb-score, .lb-num, .h-score, .perf-row b, .js-pct,
+#xpText, #levelLabel, #pfCorrect, #pfBadges {
+  font-family: var(--font-mono); font-feature-settings: "tnum"; letter-spacing: -0.02em;
+}
 a { color: var(--primary); }
 
 /* ===== Shell ===== */
