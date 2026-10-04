@@ -1299,31 +1299,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ---------- Install (Add to Home Screen) ----------
+// Keep the PWA installable (manifest + SW), but no visible Install button in the UI.
 let deferredPrompt = null;
-const installBtn = $('installBtn');
-const isStandalone =
-  window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isStandalone) installBtn.hidden = false;
-});
-window.addEventListener('appinstalled', () => {
-  installBtn.hidden = true;
-  deferredPrompt = null;
-  banner(t('installed'));
-});
-installBtn.onclick = async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    installBtn.hidden = true;
-  } else if (isIOS) {
-    banner(t('ios_install')); // iOS Safari has no prompt API
-  }
-};
-// iOS never fires beforeinstallprompt — show the button with manual instructions.
-if (isIOS && !isStandalone) installBtn.hidden = false;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+window.addEventListener('appinstalled', () => { deferredPrompt = null; banner(t('installed')); });
