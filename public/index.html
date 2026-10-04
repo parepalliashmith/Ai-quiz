@@ -215,14 +215,21 @@
               <div class="panel-head"><h2 data-i18n="recent_title">My Quizzes</h2>
                 <button class="link-btn js-clear-all"><span data-i18n="clear_all">Clear all</span></button>
               </div>
+              <p class="page-intro" data-i18n="quizzes_intro">Every quiz you take is saved here with its score, date and topic — so you can revisit any subject and see how you are improving over time. Your history stays private on this device.</p>
               <p class="muted small hist-hint" data-i18n="hist_hint" hidden>Long-press an item to delete just that one.</p>
               <div class="js-recent recent-list"></div>
-              <p class="js-recent-empty muted" data-i18n="recent_empty">No quizzes yet — create your first one!</p>
+              <div class="empty-state js-recent-empty">
+                <span class="es-ico">📋</span>
+                <h3 data-i18n="es_q_t">No quizzes yet</h3>
+                <p data-i18n="es_q_d">Your completed quizzes will appear here with scores and dates. Create your first quiz to start building your history.</p>
+                <button class="btn primary js-go-generate">✨ <span data-i18n="start_quiz">Start Quiz</span></button>
+              </div>
             </div>
           </div>
 
           <!-- PERFORMANCE -->
           <div class="page" data-page="performance">
+            <p class="page-intro" data-i18n="perf_intro">See your overall accuracy, your best score, your current daily streak and how you perform across different topics — all calculated from your own quiz history.</p>
             <div class="panel js-perf" hidden>
               <h2 data-i18n="perf_title">Your Performance</h2>
               <div class="perf">
@@ -236,7 +243,14 @@
                 <div class="stat"><b class="js-st-streak">🔥0</b><small data-i18n="st_streak">Day streak</small></div>
               </div>
             </div>
-            <div class="panel js-perf-empty"><p class="muted" data-i18n="recent_empty">No quizzes yet — create your first one!</p></div>
+            <div class="panel js-perf-empty">
+              <div class="empty-state">
+                <span class="es-ico">📊</span>
+                <h3 data-i18n="es_p_t">No data yet</h3>
+                <p data-i18n="es_p_d">Take a few quizzes and your performance stats — accuracy, best score, streak and topic breakdown — will appear here.</p>
+                <button class="btn primary js-go-generate">✨ <span data-i18n="start_quiz">Start Quiz</span></button>
+              </div>
+            </div>
           </div>
 
           <!-- LEADERBOARD (personal best scores) -->
@@ -246,9 +260,14 @@
                 <h2 data-i18n="leader_title">🏆 Your best scores</h2>
                 <button class="link-btn js-clear-all"><span data-i18n="clear_all">Clear all</span></button>
               </div>
-              <p class="muted small" data-i18n="leader_sub">Your top quiz results, ranked. Beat your own best!</p>
+              <p class="page-intro" data-i18n="leader_intro">This is your personal leaderboard — every quiz you complete is ranked by score so you can always see your best performances. There is no competition with strangers; the goal is simply to beat your own best and keep climbing.</p>
               <div id="leaderList" class="leader-list"></div>
-              <p id="leaderEmpty" class="muted" data-i18n="recent_empty">No quizzes yet — create your first one!</p>
+              <div id="leaderEmpty" class="empty-state">
+                <span class="es-ico">🏆</span>
+                <h3 data-i18n="es_l_t">No scores yet</h3>
+                <p data-i18n="es_l_d">Finish a quiz and your top results will be ranked here with medals for your best three. Start now and set your first high score!</p>
+                <button class="btn primary js-go-generate">✨ <span data-i18n="start_quiz">Start Quiz</span></button>
+              </div>
             </div>
           </div>
 
@@ -288,9 +307,14 @@
                 <h2 data-i18n="bm_title">⭐ Saved questions</h2>
                 <button id="clearBookmarks" class="link-btn"><span data-i18n="clear_all">Clear all</span></button>
               </div>
-              <p class="muted small" data-i18n="bm_sub">Tap a card to flip and see the answer.</p>
+              <p class="page-intro" data-i18n="bm_intro">Bookmark any tricky question during a quiz and it is saved here as a flashcard. Tap a card to flip it and reveal the correct answer with its explanation — a fast, focused way to revise the questions that matter most to you.</p>
               <div id="bookmarkList" class="flash-list"></div>
-              <p id="bookmarkEmpty" class="muted" data-i18n="bm_empty">No saved questions yet. Tap ☆ during a quiz to save one.</p>
+              <div id="bookmarkEmpty" class="empty-state">
+                <span class="es-ico">⭐</span>
+                <h3 data-i18n="es_b_t">No saved questions yet</h3>
+                <p data-i18n="es_b_d">During any quiz, tap the ☆ icon on a question you want to remember. It will be saved here as a flashcard you can review anytime.</p>
+                <button class="btn primary js-go-generate">✨ <span data-i18n="start_quiz">Start Quiz</span></button>
+              </div>
             </div>
           </div>
 

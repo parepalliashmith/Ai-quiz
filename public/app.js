@@ -14,6 +14,14 @@ const I18N = {
     hp1: 'AI Generated Questions', hp2: 'Any Topic or Subject', hp3: 'Track Your Progress', hp4: 'Earn Badges & Rewards',
     start_quiz: 'Start Quiz', popular_cat: '⚡ Popular Categories', tap_start: 'Tap to start',
     leader_title: '🏆 Your best scores', leader_sub: 'Your top quiz results, ranked. Beat your own best!',
+    quizzes_intro: 'Every quiz you take is saved here with its score, date and topic — so you can revisit any subject and see how you are improving over time. Your history stays private on this device.',
+    perf_intro: 'See your overall accuracy, your best score, your current daily streak and how you perform across different topics — all calculated from your own quiz history.',
+    leader_intro: 'This is your personal leaderboard — every quiz you complete is ranked by score so you can always see your best performances. The goal is simply to beat your own best and keep climbing.',
+    bm_intro: 'Bookmark any tricky question during a quiz and it is saved here as a flashcard. Tap a card to flip it and reveal the correct answer with its explanation.',
+    es_q_t: 'No quizzes yet', es_q_d: 'Your completed quizzes will appear here with scores and dates. Create your first quiz to start building your history.',
+    es_p_t: 'No data yet', es_p_d: 'Take a few quizzes and your performance stats — accuracy, best score, streak and topic breakdown — will appear here.',
+    es_l_t: 'No scores yet', es_l_d: 'Finish a quiz and your top results will be ranked here with medals for your best three.',
+    es_b_t: 'No saved questions yet', es_b_d: 'During any quiz, tap the ☆ icon on a question you want to remember. It will be saved here as a flashcard.',
     profile_tag: 'Quiz Enthusiast', pf_correct: 'Correct', pf_badges: 'Badges',
     badges_title: '🏅 Badges', weak_title: '📉 Topics to improve', weak_sub: 'Your lower-scoring topics — tap to practise again.',
     bm_title: '⭐ Saved questions', bm_sub: 'Tap a card to flip and see the answer.',
@@ -501,8 +509,8 @@ document.querySelectorAll('.feature').forEach((f) => {
 if ($('scanBtn')) $('scanBtn').onclick = openCamera;
 if ($('closeCam')) $('closeCam').onclick = () => { stopCamera(); $('cameraWrap').hidden = true; };
 
-// Hero "Start Quiz" → go to the create page.
-document.querySelectorAll('[data-action="startquiz"]').forEach((b) => {
+// Hero "Start Quiz" + empty-state buttons → go to the create page.
+document.querySelectorAll('[data-action="startquiz"], .js-go-generate').forEach((b) => {
   b.onclick = () => { show('capture'); showPage('generate'); $('topicInput').focus(); };
 });
 // Popular category → generate a quiz on that topic right away.

@@ -242,6 +242,14 @@ a { color: var(--primary); }
 .hist-item .h-score.good { color: var(--green); } .hist-item .h-score.mid { color: var(--primary); } .hist-item .h-score.low { color: var(--red); }
 .small { font-size: 12px; }
 
+/* Rich empty states + page intros */
+.page-intro { color: var(--muted); font-size: 14px; margin: -6px 0 14px; line-height: 1.6; }
+.empty-state { text-align: center; padding: 34px 20px; }
+.empty-state .es-ico { font-size: 46px; display: block; margin-bottom: 10px; }
+.empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+.empty-state p { color: var(--muted); font-size: 14px; max-width: 420px; margin: 0 auto 18px; line-height: 1.6; }
+.empty-state .btn { display: inline-flex; }
+
 /* Profile */
 .profile-panel { }
 .profile-head { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
