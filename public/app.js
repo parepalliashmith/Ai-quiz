@@ -8,7 +8,11 @@ const I18N = {
     tagline: 'Learn Smarter · Score Higher', guest: 'Guest',
     nav_home: 'Home', nav_generate: 'Generate Quiz', nav_quizzes: 'My Quizzes',
     nav_material: 'Study Material', nav_perf: 'Performance', nav_leader: 'Leaderboard', nav_coach: 'Study Coach', nav_settings: 'Settings',
-    nav_bookmarks: 'Bookmarks', nav_profile: 'Profile',
+    nav_bookmarks: 'Bookmarks', nav_profile: 'Profile', nav_quizzes2: 'Quizzes',
+    powered_ai: 'Powered by AI', hero_l1: 'Smarter Quizzes.', hero_l2: 'Bigger Dreams.',
+    hero_sub2: 'Challenge yourself with AI-generated quizzes on any topic. Learn, improve and unlock your full potential.',
+    hp1: 'AI Generated Questions', hp2: 'Any Topic or Subject', hp3: 'Track Your Progress', hp4: 'Earn Badges & Rewards',
+    start_quiz: 'Start Quiz', popular_cat: '⚡ Popular Categories', tap_start: 'Tap to start',
     leader_title: '🏆 Your best scores', leader_sub: 'Your top quiz results, ranked. Beat your own best!',
     profile_tag: 'Quiz Enthusiast', pf_correct: 'Correct', pf_badges: 'Badges',
     badges_title: '🏅 Badges', weak_title: '📉 Topics to improve', weak_sub: 'Your lower-scoring topics — tap to practise again.',
@@ -328,7 +332,7 @@ $('langSwitch').onchange = (e) => {
 };
 
 // ---------- Theme ----------
-let theme = localStorage.getItem('aiquiz_theme') || 'dark';
+let theme = localStorage.getItem('aiquiz_theme') || 'light';
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', theme);
   $('themeToggle').textContent = theme === 'light' ? '🌙' : '☀️';
@@ -496,6 +500,21 @@ document.querySelectorAll('.feature').forEach((f) => {
 });
 if ($('scanBtn')) $('scanBtn').onclick = openCamera;
 if ($('closeCam')) $('closeCam').onclick = () => { stopCamera(); $('cameraWrap').hidden = true; };
+
+// Hero "Start Quiz" → go to the create page.
+document.querySelectorAll('[data-action="startquiz"]').forEach((b) => {
+  b.onclick = () => { show('capture'); showPage('generate'); $('topicInput').focus(); };
+});
+// Popular category → generate a quiz on that topic right away.
+document.querySelectorAll('.cat').forEach((c) => {
+  c.onclick = () => {
+    show('capture'); showPage('generate');
+    $('topicInput').value = c.dataset.cat;
+    $('mode').value = 'study';
+    syncGenerate();
+    runGenerate();
+  };
+});
 
 // ---------- Camera ----------
 const video = $('video');

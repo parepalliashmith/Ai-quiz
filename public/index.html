@@ -57,18 +57,24 @@
     <div class="side-scrim" id="sideScrim"></div>
 
     <div class="main-col">
-      <header class="topbar">
-        <div class="top-left">
+      <header class="topnav">
+        <div class="topnav-left">
           <button id="sideToggle" class="icon-btn" aria-label="Menu">☰</button>
-          <h1 id="pageTitle" class="page-title" data-i18n="nav_home">Home</h1>
+          <div class="brand"><span class="logo">🧠</span> <b>AI Quiz</b></div>
         </div>
-        <div class="top-actions">
+        <nav class="topnav-tabs">
+          <button class="nav-item tnav active" data-nav="home"><span data-i18n="nav_home">Home</span></button>
+          <button class="nav-item tnav" data-nav="generate"><span data-i18n="nav_quizzes2">Quizzes</span></button>
+          <button class="nav-item tnav" data-nav="leaderboard"><span data-i18n="nav_leader">Leaderboard</span></button>
+          <button class="nav-item tnav" data-nav="profile"><span data-i18n="nav_profile">Profile</span></button>
+        </nav>
+        <div class="topnav-actions">
           <select id="langSwitch" class="lang-switch" title="Language">
             <option value="english">EN</option><option value="telugu">తెలుగు</option><option value="hindi">हिन्दी</option>
           </select>
           <button id="installBtn" class="btn primary small" hidden>⬇️ <span data-i18n="install">Install</span></button>
           <button id="themeToggle" class="icon-btn" title="Theme">🌙</button>
-          <div class="profile"><span class="avatar">A</span><span class="profile-name" data-i18n="guest">Guest</span></div>
+          <div class="profile"><span class="avatar">A</span></div>
         </div>
       </header>
 
@@ -81,18 +87,30 @@
         <section id="capture">
           <!-- HOME -->
           <div class="page active" data-page="home">
-            <div class="welcome">
-              <div class="welcome-text">
-                <h1 data-i18n="welcome_title">Welcome to AIQUIZ</h1>
-                <p data-i18n="welcome_sub">Upload your study material or enter a topic, and let AI create personalized quizzes for you!</p>
+            <div class="hero">
+              <div class="hero-text">
+                <span class="hero-badge">✦ <span data-i18n="powered_ai">Powered by AI</span></span>
+                <h1 class="hero-title"><span data-i18n="hero_l1">Smarter Quizzes.</span><br /><span class="grad" data-i18n="hero_l2">Bigger Dreams.</span></h1>
+                <p class="hero-sub" data-i18n="hero_sub2">Challenge yourself with AI-generated quizzes on any topic. Learn, improve and unlock your full potential.</p>
+                <div class="hero-pills">
+                  <div class="hpill"><span>✨</span><small data-i18n="hp1">AI Generated Questions</small></div>
+                  <div class="hpill"><span>🎯</span><small data-i18n="hp2">Any Topic or Subject</small></div>
+                  <div class="hpill"><span>📈</span><small data-i18n="hp3">Track Your Progress</small></div>
+                  <div class="hpill"><span>🏆</span><small data-i18n="hp4">Earn Badges &amp; Rewards</small></div>
+                </div>
+                <button class="btn primary big hero-cta" data-action="startquiz"><span data-i18n="start_quiz">Start Quiz</span> →</button>
               </div>
-              <div class="welcome-art">🤖💡</div>
+              <div class="hero-art">🧑‍💻<span class="hero-art-bg"></span></div>
             </div>
-            <div class="feature-cards">
-              <button class="feature" data-action="topic"><span class="fico">📄</span><b data-i18n="f_topic_t">Generate from Topic</b><small data-i18n="f_topic_d">Enter any topic and get instant quiz questions.</small></button>
-              <button class="feature" data-action="upload"><span class="fico">☁️</span><b data-i18n="f_upload_t">Upload Study Material</b><small data-i18n="f_upload_d">PDF, images or text files (Notes, PPTs, etc.)</small></button>
-              <button class="feature" data-action="scan"><span class="fico">📷</span><b data-i18n="f_scan_t">Scan Notes</b><small data-i18n="f_scan_d">Take a photo of your notes and convert to quiz.</small></button>
-              <button class="feature" data-action="observe"><span class="fico">✨</span><b data-i18n="f_ai_t">AI-Powered</b><small data-i18n="f_ai_d">Smart questions, instant feedback, and more!</small></button>
+
+            <div class="cat-head"><h2 data-i18n="popular_cat">⚡ Popular Categories</h2></div>
+            <div class="cat-grid">
+              <button class="cat" data-cat="General Knowledge" style="--c:#4f6ef7"><span class="cat-ico">📘</span><b>General Knowledge</b><small data-i18n="tap_start">Tap to start</small></button>
+              <button class="cat" data-cat="General Science" style="--c:#16b981"><span class="cat-ico">🔬</span><b>Science</b><small data-i18n="tap_start">Tap to start</small></button>
+              <button class="cat" data-cat="Mathematics" style="--c:#f59e0b"><span class="cat-ico">🔢</span><b>Mathematics</b><small data-i18n="tap_start">Tap to start</small></button>
+              <button class="cat" data-cat="Indian History" style="--c:#ef4444"><span class="cat-ico">🏛️</span><b>History</b><small data-i18n="tap_start">Tap to start</small></button>
+              <button class="cat" data-cat="Current Affairs" style="--c:#a855f7"><span class="cat-ico">📰</span><b>Current Affairs</b><small data-i18n="tap_start">Tap to start</small></button>
+              <button class="cat" data-cat="Logical Reasoning" style="--c:#06b6d4"><span class="cat-ico">🧩</span><b>Reasoning</b><small data-i18n="tap_start">Tap to start</small></button>
             </div>
             <div class="stats js-stats" hidden>
               <div class="stat"><b class="js-st-total">0</b><small data-i18n="st_total">Quizzes</small></div>
