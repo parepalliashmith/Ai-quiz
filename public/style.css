@@ -484,3 +484,15 @@ a { color: var(--primary); }
   .cat-grid { grid-template-columns: repeat(2,1fr); }
   .hero-pills { grid-template-columns: 1fr; }
 }
+
+/* ---- Accounts: sign-in chip + global leaderboard ---- */
+.auth-area { display:flex; align-items:center; }
+#gBtn { display:flex; align-items:center; }
+.user-chip { display:flex; align-items:center; gap:6px; background:var(--panel,#fff); border:1px solid var(--line,#ecebf6); border-radius:999px; padding:3px 6px 3px 4px; }
+.user-chip #userPic { width:26px; height:26px; border-radius:50%; object-fit:cover; }
+.user-chip #userName { font:700 13px var(--font-ui,inherit); color:var(--text,#1b1e34); max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.user-chip .icon-btn { font-size:14px; padding:2px 6px; }
+.lb-pic { width:34px; height:34px; border-radius:50%; object-fit:cover; flex:none; }
+.lb-pic.ph { display:flex; align-items:center; justify-content:center; background:var(--primary,#6d5efc); color:#fff; font:800 15px var(--font-ui,inherit); }
+.lb-row.mine { outline:2px solid var(--primary,#6d5efc); outline-offset:-2px; }
+.my-rank { margin-top:12px; padding:12px 14px; background:var(--chip,#f3f1ff); border:1px solid var(--line,#e4dffe); border-radius:12px; font:600 14px var(--font-ui,inherit); color:var(--text,#4b5069); text-align:center; }

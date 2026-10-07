@@ -449,7 +449,7 @@ function showPage(name) {
   const title = $('pageTitle');
   if (title && PAGE_KEYS[name]) { title.setAttribute('data-i18n', PAGE_KEYS[name]); title.textContent = t(PAGE_KEYS[name]); }
   if (name === 'quizzes' || name === 'performance') renderHistory();
-  if (name === 'leaderboard') renderLeaderboard();
+  if (name === 'leaderboard') { renderLeaderboard(); if (window.AIQUIZAuth) AIQUIZAuth.refreshLeaderboard(); }
   if (name === 'profile') renderProfile();
   if (name === 'bookmarks') renderBookmarks();
   const c = document.querySelector('.content');
@@ -921,6 +921,13 @@ function showResults() {
   $('wrongOnly').checked = false;
   renderReview(false);
   saveHistory({ topic: quiz.topic || 'Quiz', score, total, pct });
+  // If signed in, also save to the cloud so it counts on the global leaderboard.
+  if (window.AIQUIZAuth) {
+    AIQUIZAuth.saveResult({
+      topic: quiz.topic || 'Quiz', score, total,
+      difficulty: ($('difficulty') || {}).value, language: ($('quizLang') || {}).value,
+    });
+  }
   if (pct >= 70) {
     confetti();
     if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 60]);

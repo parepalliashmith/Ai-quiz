@@ -5,6 +5,8 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const db = require('./db');
+const auth = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +22,7 @@ const GEMINI_API_KEY = GEMINI_KEYS[0] || '';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 app.use(express.json({ limit: '25mb' }));
+app.use(auth.authMiddleware); // sets req.auth from the Bearer token (or null)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Keep uploaded photos in memory; we forward them straight to Gemini.
@@ -35,8 +38,89 @@ const LANGUAGES = {
 };
 
 app.get('/api/health', (_req, res) =>
-  res.json({ ok: true, configured: !!GEMINI_API_KEY, model: GEMINI_MODEL })
+  res.json({
+    ok: true,
+    configured: !!GEMINI_API_KEY,
+    model: GEMINI_MODEL,
+    accounts: auth.configured && db.enabled,
+  })
 );
+
+// ---------------- Accounts & leaderboard ----------------
+
+// The frontend asks this on load to decide whether to show the Google button.
+app.get('/api/auth/config', (_req, res) => {
+  res.json({
+    accounts: auth.configured && db.enabled,
+    googleClientId: auth.configured ? auth.clientId : '',
+  });
+});
+
+// Exchange a Google credential for one of our session tokens.
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    if (!db.enabled) return res.status(503).json({ error: 'Accounts are not enabled yet.' });
+    const profile = await auth.verifyGoogleCredential(req.body && req.body.credential);
+    const user = await db.upsertUser(profile);
+    res.json({ token: auth.issueToken(user), user: publicUser(user) });
+  } catch (e) {
+    res.status(401).json({ error: e.message || 'Sign-in failed.' });
+  }
+});
+
+// Current user's profile + stats + rank.
+app.get('/api/me', async (req, res) => {
+  if (!db.enabled) return res.status(503).json({ error: 'Accounts are not enabled.' });
+  if (!req.auth) return res.status(401).json({ error: 'Not signed in.' });
+  const user = await db.getUser(req.auth.sub);
+  if (!user) return res.status(401).json({ error: 'Session expired.' });
+  const rank = await db.userRank(user.id);
+  res.json({ user: publicUser(user), rank });
+});
+
+// Save a finished quiz result (requires sign-in).
+app.post('/api/results', async (req, res) => {
+  try {
+    if (!db.enabled) return res.status(503).json({ error: 'Accounts are not enabled.' });
+    if (!req.auth) return res.status(401).json({ error: 'Sign in to save your score.' });
+    const user = await db.recordResult(req.auth.sub, req.body || {});
+    if (!user) return res.status(401).json({ error: 'Session expired.' });
+    const rank = await db.userRank(user.id);
+    res.json({ user: publicUser(user), rank });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Could not save result.' });
+  }
+});
+
+// Global leaderboard — top players.
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    if (!db.enabled) return res.json({ accounts: false, entries: [] });
+    const entries = await db.leaderboard(parseInt(req.query.limit, 10) || 50);
+    let me = null;
+    if (req.auth) {
+      const u = await db.getUser(req.auth.sub);
+      if (u) me = { ...publicUser(u), rank: await db.userRank(u.id) };
+    }
+    res.json({ accounts: true, entries, me });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Could not load leaderboard.' });
+  }
+});
+
+// Never leak email to other users; only expose safe fields.
+function publicUser(u) {
+  if (!u) return null;
+  return {
+    id: u.id,
+    name: u.name,
+    picture: u.picture,
+    quizzes: u.quizzes,
+    points: u.points,
+    bestPercent: u.best_percent,
+    accuracy: u.total_questions > 0 ? Math.round((100 * u.total_correct) / u.total_questions) : 0,
+  };
+}
 
 const JSON_SHAPE =
   `Respond with STRICT JSON only (no markdown, no code fences) in this shape:\n` +
@@ -212,6 +296,8 @@ app.post('/api/quiz', upload.array('images', 10), async (req, res) => {
     res.status(e.code === 'AI_LIMIT' ? 429 : 502).json({ error: e.message });
   }
 });
+
+db.init().catch((e) => console.error('[db] init failed:', e.message));
 
 app.listen(PORT, () => console.log(`Scan-Quiz running on http://localhost:${PORT}`));
 

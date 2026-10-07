@@ -89,7 +89,14 @@
           </select>
           <button id="shareApp" class="btn primary small" title="Share AIQUIZ">📤 <span data-i18n="share_app">Share</span></button>
           <button id="themeToggle" class="icon-btn" title="Theme">🌙</button>
-          <div class="profile"><span class="avatar">A</span></div>
+          <div id="authArea" class="auth-area" hidden>
+            <div id="gBtn"></div>
+            <div id="userChip" class="user-chip" hidden>
+              <img id="userPic" alt="" hidden />
+              <span id="userName"></span>
+              <button id="signOutBtn" class="icon-btn" title="Sign out">⎋</button>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -283,6 +290,14 @@
 
           <!-- LEADERBOARD (personal best scores) -->
           <div class="page" data-page="leaderboard">
+            <div class="panel" id="globalLbPanel" hidden>
+              <div class="panel-head">
+                <h2>🌍 Global leaderboard</h2>
+              </div>
+              <p class="page-intro">Top students across AIQUIZ, ranked by total points earned. Sign in and finish quizzes to climb the ranks and compete with learners everywhere.</p>
+              <div id="globalList" class="leader-list"></div>
+              <div id="myRankRow" class="my-rank" hidden></div>
+            </div>
             <div class="panel">
               <div class="panel-head">
                 <h2 data-i18n="leader_title">🏆 Your best scores</h2>
@@ -477,5 +492,6 @@
 
   <p id="banner" class="banner" hidden></p>
   <script src="app.js"></script>
+  <script src="auth-client.js?v=1"></script>
 </body>
 </html>
